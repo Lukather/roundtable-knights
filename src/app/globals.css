@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f0f14;
+  --foreground: #1a1a2e;
+  --surface: #1a1a24;
+  --surface-2: #22222e;
+  --border: #2e2e3e;
+  --muted: #6b6b80;
+  --accent: #7c6af7;
+  --accent-hover: #6b58f0;
+}
+
+/* Dark theme (default) */
+:root, [data-theme="dark"] {
+  --background: #0f0f14;
+  --foreground: #e8e8f0;
+  --surface: #1a1a24;
+  --surface-2: #22222e;
+  --border: #2e2e3e;
+  --muted: #6b6b80;
+  --accent: #7c6af7;
+  --accent-hover: #6b58f0;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --background: #f7f7fb;
+  --foreground: #1a1a2e;
+  --surface: #ffffff;
+  --surface-2: #efeff7;
+  --border: #e0e0f0;
+  --muted: #8888a8;
+  --accent: #7c6af7;
+  --accent-hover: #6b58f0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Markdown inside TurnBubble */
+.prose-bubble p { margin: 0 0 0.5em; font-size: 0.875rem; line-height: 1.625; color: var(--foreground); }
+.prose-bubble p:last-child { margin-bottom: 0; }
+.prose-bubble strong { font-weight: 600; color: var(--foreground); }
+.prose-bubble em { font-style: italic; }
+.prose-bubble ul { list-style: disc; padding-left: 1.25em; margin: 0.4em 0; }
+.prose-bubble ol { list-style: decimal; padding-left: 1.25em; margin: 0.4em 0; }
+.prose-bubble li { margin: 0.2em 0; font-size: 0.875rem; color: var(--foreground); }
+.prose-bubble code { font-family: monospace; font-size: 0.8em; background: var(--surface); padding: 0.1em 0.3em; border-radius: 3px; }
+
+/* Markdown inside ReportView executive summary */
+.prose-report p { margin: 0 0 0.75em; color: var(--foreground); }
+.prose-report p:last-child { margin-bottom: 0; }
+.prose-report strong { font-weight: 600; }
+.prose-report em { font-style: italic; }
+.prose-report ul { list-style: disc; padding-left: 1.25em; margin: 0.5em 0; }
+.prose-report li { margin: 0.25em 0; }
+
+/* Inline markdown (single-line list items) — strips paragraph margin */
+.prose-inline p { display: inline; margin: 0; }
+.prose-inline strong { font-weight: 600; }
+
+/* Light mode: make text-white readable against light backgrounds */
+[data-theme="light"] .text-white,
+[data-theme="light"] .hover\:text-white:hover {
+  color: var(--foreground);
+}
+/* Restore white on elements whose OWN inline style sets a (colored) background */
+[data-theme="light"] .text-white[style*="background"] {
+  color: white;
+}
+/* Restore white inside Tailwind background-color classes (avatar circles) */
+[data-theme="light"] [class*="bg-purple-"].text-white,
+[data-theme="light"] [class*="bg-blue-"].text-white,
+[data-theme="light"] [class*="bg-emerald-"].text-white,
+[data-theme="light"] [class*="bg-rose-"].text-white,
+[data-theme="light"] [class*="bg-amber-"].text-white,
+[data-theme="light"] [class*="bg-cyan-"].text-white,
+[data-theme="light"] [class*="bg-pink-"].text-white,
+[data-theme="light"] [class*="bg-indigo-"].text-white,
+[data-theme="light"] [class*="bg-gray-"].text-white {
+  color: white;
+}
