@@ -6,6 +6,9 @@ An AI-powered roundtable simulation tool. Define a cast of synthetic personas, s
 
 ---
 
+<img width="1410" height="701" alt="image" src="https://github.com/user-attachments/assets/e9817844-2f19-486d-aea3-58edad730d3a" />
+
+
 ## Features
 
 - **Personas** — create participants manually or describe them in plain text and let AI fill in the fields
