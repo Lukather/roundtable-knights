@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import anthropic from '@/lib/anthropic'
+import anthropic, { CLAUDE_MODEL } from '@/lib/anthropic'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: CLAUDE_MODEL,
       max_tokens: 600,
       system: `You generate structured persona profiles for a business roundtable simulation tool.
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMeeting, updateMeetingStatus } from '@/lib/meetings'
-import { activeRuns, pendingPause, pendingDirective } from '@/lib/activeRuns'
+import { getMeeting } from '@/lib/meetings'
+import { activeRuns, pendingPause } from '@/lib/activeRuns'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,13 +8,10 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   const meeting = getMeeting(params.id)
   if (!meeting) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  activeRuns.delete(params.id)
-  pendingPause.delete(params.id)
-  pendingDirective.delete(params.id)
-
-  if (meeting.status === 'running' || meeting.status === 'paused') {
-    updateMeetingStatus(params.id, 'idle')
+  if (!activeRuns.has(params.id)) {
+    return NextResponse.json({ error: 'Meeting is not running' }, { status: 409 })
   }
 
+  pendingPause.add(params.id)
   return NextResponse.json({ success: true })
 }

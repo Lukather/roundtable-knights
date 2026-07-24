@@ -2,17 +2,29 @@ import db from './db'
 import { Report } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 
-function row2report(row: Record<string, unknown>): Report {
+interface ReportRow {
+  id: string
+  meeting_id: string
+  executive_summary: string
+  key_decisions: string
+  open_questions: string
+  action_items: string
+  dissents: string
+  raw_markdown: string
+  created_at: string
+}
+
+function row2report(row: ReportRow): Report {
   return {
-    id: row.id as string,
-    meetingId: row.meeting_id as string,
-    executiveSummary: row.executive_summary as string,
-    keyDecisions: JSON.parse((row.key_decisions as string) || '[]'),
-    openQuestions: JSON.parse((row.open_questions as string) || '[]'),
-    actionItems: JSON.parse((row.action_items as string) || '[]'),
-    dissents: JSON.parse((row.dissents as string) || '[]'),
-    rawMarkdown: row.raw_markdown as string,
-    createdAt: row.created_at as string,
+    id: row.id,
+    meetingId: row.meeting_id,
+    executiveSummary: row.executive_summary,
+    keyDecisions: JSON.parse(row.key_decisions || '[]') as string[],
+    openQuestions: JSON.parse(row.open_questions || '[]') as string[],
+    actionItems: JSON.parse(row.action_items || '[]') as string[],
+    dissents: JSON.parse(row.dissents || '[]') as string[],
+    rawMarkdown: row.raw_markdown,
+    createdAt: row.created_at,
   }
 }
 
@@ -33,7 +45,7 @@ export function saveReport(data: Omit<Report, 'id' | 'createdAt'>): Report {
     data.rawMarkdown,
     createdAt
   )
-  return row2report(db.prepare('SELECT * FROM reports WHERE meeting_id = ?').get(data.meetingId) as Record<string, unknown>)
+  return row2report(db.prepare('SELECT * FROM reports WHERE meeting_id = ?').get(data.meetingId) as ReportRow)
 }
 
 export function deleteReport(meetingId: string): void {
@@ -43,5 +55,5 @@ export function deleteReport(meetingId: string): void {
 export function getReport(meetingId: string): Report | null {
   const row = db.prepare('SELECT * FROM reports WHERE meeting_id = ?').get(meetingId)
   if (!row) return null
-  return row2report(row as Record<string, unknown>)
+  return row2report(row as ReportRow)
 }

@@ -6,9 +6,10 @@ interface Props {
   turn: Turn
   persona: Persona | undefined
   index: number
+  isStreaming?: boolean
 }
 
-export default function TurnBubble({ turn, persona, index }: Props) {
+export default function TurnBubble({ turn, persona, index, isStreaming }: Props) {
   const name = persona?.name ?? 'Unknown'
   const role = persona?.role ?? ''
   const color = persona ? avatarColorHex(persona.id) : '#6b7280'
@@ -47,6 +48,7 @@ export default function TurnBubble({ turn, persona, index }: Props) {
           >
             <div className="prose-bubble">
               <ReactMarkdown>{turn.content}</ReactMarkdown>
+              {isStreaming && <StreamingCursor color={color} />}
             </div>
           </div>
         </div>
@@ -78,9 +80,11 @@ export default function TurnBubble({ turn, persona, index }: Props) {
           >
             {role}
           </span>
-          <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--muted)' }}>
-            #{index + 1}
-          </span>
+          {index >= 0 && (
+            <span className="text-xs ml-auto tabular-nums" style={{ color: 'var(--muted)' }}>
+              #{index + 1}
+            </span>
+          )}
         </div>
 
         {/* Bubble with persona-colored left border */}
@@ -94,9 +98,20 @@ export default function TurnBubble({ turn, persona, index }: Props) {
         >
           <div className="prose-bubble">
             <ReactMarkdown>{turn.content}</ReactMarkdown>
+            {isStreaming && <StreamingCursor color={color} />}
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function StreamingCursor({ color }: { color: string }) {
+  return (
+    <span
+      className="inline-block w-0.5 h-4 ml-0.5 -mb-0.5 animate-pulse rounded-sm"
+      style={{ background: color }}
+      aria-hidden
+    />
   )
 }

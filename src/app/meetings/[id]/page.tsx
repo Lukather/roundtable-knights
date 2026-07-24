@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { createPortal } from 'react-dom'
 import { Meeting, Persona, Turn } from '@/types'
 import { useMeetingStore } from '@/store/meetingStore'
 import DiscussionFeed from '@/components/DiscussionFeed'
 import AttachmentsPanel from '@/components/AttachmentsPanel'
+import SteerPanel from '@/components/SteerPanel'
 import Link from 'next/link'
 
 export default function MeetingPage() {
@@ -13,17 +15,58 @@ export default function MeetingPage() {
   const router = useRouter()
   const [meeting, setMeeting] = useState<Meeting | null>(null)
   const [personas, setPersonas] = useState<Persona[]>([])
-  const [thinkingPersonaId, setThinkingPersonaId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState('')
   const [runError, setRunError] = useState('')
   const [rerunConfirm, setRerunConfirm] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
-  const { turns, status, setStatus, addTurn, setTurns, isGeneratingReport, setGeneratingReport, reset } = useMeetingStore()
+  // Steer panel state
+  const [steerDraft, setSteerDraft] = useState('')
+
+  // IntersectionObserver: floating pause pill
+  const controlsRowRef = useRef<HTMLDivElement>(null)
+  const [controlsVisible, setControlsVisible] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  const {
+    turns,
+    streamingTurns,
+    status,
+    steer,
+    setStatus,
+    setSteer,
+    setTurns,
+    isGeneratingReport,
+    setGeneratingReport,
+    startStreamingTurn,
+    appendToken,
+    commitTurn,
+    reset,
+  } = useMeetingStore()
 
   const personaMap = Object.fromEntries(personas.map((p) => [p.id, p]))
 
-  const startDiscussion = useCallback(async () => {
+  // -------------------------------------------------------------------------
+  // IntersectionObserver for the floating Pause pill
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    setMounted(true)
+    const el = controlsRowRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => setControlsVisible(entry.isIntersecting),
+      { threshold: 0.5 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
+  const showFloatingPill = mounted && status === 'running' && !controlsVisible
+
+  // -------------------------------------------------------------------------
+  // Core: start / resume discussion (accepts optional steer directive)
+  // -------------------------------------------------------------------------
+  const startDiscussion = useCallback(async (directive?: string) => {
     if (abortRef.current) abortRef.current.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
@@ -32,15 +75,18 @@ export default function MeetingPage() {
     setStatus('running')
 
     try {
+      const body = directive ? JSON.stringify({ directive }) : undefined
       const res = await fetch(`/api/meetings/${id}/run`, {
         method: 'POST',
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body,
         signal: ctrl.signal,
       })
 
       if (!res.ok || !res.body) {
-        const body = await res.text().catch(() => `HTTP ${res.status}`)
-        let msg = body
-        try { msg = JSON.parse(body).error ?? body } catch {}
+        const raw = await res.text().catch(() => `HTTP ${res.status}`)
+        let msg = raw
+        try { msg = JSON.parse(raw).error ?? raw } catch {}
         setRunError(msg)
         setStatus('error')
         return
@@ -48,30 +94,33 @@ export default function MeetingPage() {
 
       const reader = res.body.getReader()
       const dec = new TextDecoder()
-      let buffer = ''
+      let buf = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        buffer += dec.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() ?? ''
+        buf += dec.decode(value, { stream: true })
+        const lines = buf.split('\n')
+        buf = lines.pop() ?? ''
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
           const data = JSON.parse(line.slice(6))
 
-          if (data.type === 'turn') {
-            setThinkingPersonaId(null)
-            addTurn(data.turn as Turn)
-          } else if (data.type === 'thinking') {
-            setThinkingPersonaId(data.personaId)
+          if (data.type === 'turn_start') {
+            startStreamingTurn(data.id, data.personaId, data.kind)
+          } else if (data.type === 'token') {
+            appendToken(data.id, data.token)
+          } else if (data.type === 'turn') {
+            commitTurn(data.turn as Turn)
+          } else if (data.type === 'steer') {
+            setSteer(data.directive ? { directive: data.directive, turnsLeft: data.turnsLeft } : null)
+          } else if (data.type === 'paused') {
+            setStatus('paused')
           } else if (data.type === 'done') {
-            setThinkingPersonaId(null)
             setStatus(data.status === 'completed' ? 'completed' : 'idle')
           } else if (data.type === 'error') {
-            setThinkingPersonaId(null)
             setRunError(data.message ?? 'Unknown error from AI')
             setStatus('error')
           }
@@ -81,11 +130,30 @@ export default function MeetingPage() {
       if (err instanceof Error && err.name === 'AbortError') return
       setRunError(String(err))
       setStatus('error')
-    } finally {
-      setThinkingPersonaId(null)
     }
-  }, [id, addTurn, setStatus])
+  }, [id, startStreamingTurn, appendToken, commitTurn, setStatus, setSteer])
 
+  // -------------------------------------------------------------------------
+  // Pause / Resume / Stop
+  // -------------------------------------------------------------------------
+  async function handlePause() {
+    await fetch(`/api/meetings/${id}/pause`, { method: 'POST' })
+  }
+
+  function handleResume(directive?: string) {
+    setSteerDraft('')
+    startDiscussion(directive)
+  }
+
+  async function handleStop() {
+    abortRef.current?.abort()
+    await fetch(`/api/meetings/${id}/stop`, { method: 'POST' })
+    setStatus('idle')
+  }
+
+  // -------------------------------------------------------------------------
+  // Load meeting + personas
+  // -------------------------------------------------------------------------
   useEffect(() => {
     async function load() {
       try {
@@ -110,6 +178,9 @@ export default function MeetingPage() {
         if (m.status === 'completed' || m.status === 'error') {
           setStatus(m.status)
         }
+        if (m.status === 'paused') {
+          setStatus('paused')
+        }
       } catch (err) {
         setLoadError(String(err))
       }
@@ -119,13 +190,9 @@ export default function MeetingPage() {
     return () => { abortRef.current?.abort() }
   }, [id])
 
-  async function handleStop() {
-    abortRef.current?.abort()
-    await fetch(`/api/meetings/${id}/stop`, { method: 'POST' })
-    setStatus('idle')
-    setThinkingPersonaId(null)
-  }
-
+  // -------------------------------------------------------------------------
+  // Rerun
+  // -------------------------------------------------------------------------
   async function handleRerun() {
     const res = await fetch(`/api/meetings/${id}/turns`, { method: 'DELETE' })
     if (!res.ok) {
@@ -139,6 +206,9 @@ export default function MeetingPage() {
     startDiscussion()
   }
 
+  // -------------------------------------------------------------------------
+  // Report
+  // -------------------------------------------------------------------------
   async function handleGenerateReport() {
     setGeneratingReport(true)
     try {
@@ -146,9 +216,9 @@ export default function MeetingPage() {
       if (res.ok) {
         router.push(`/meetings/${id}/report`)
       } else {
-        const body = await res.text().catch(() => '')
-        let msg = body
-        try { msg = JSON.parse(body).error ?? body } catch {}
+        const raw = await res.text().catch(() => '')
+        let msg = raw
+        try { msg = JSON.parse(raw).error ?? raw } catch {}
         setRunError(msg || 'Failed to generate report')
       }
     } finally {
@@ -156,6 +226,9 @@ export default function MeetingPage() {
     }
   }
 
+  // -------------------------------------------------------------------------
+  // Render
+  // -------------------------------------------------------------------------
   if (loadError) return <div className="text-center py-20 text-red-400">{loadError}</div>
   if (!meeting) return <div className="text-center py-20" style={{ color: 'var(--muted)' }}>Loading…</div>
 
@@ -203,62 +276,107 @@ export default function MeetingPage() {
       )}
 
       {/* Controls */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        {canStart && (
-          <button
-            onClick={startDiscussion}
-            className="px-5 py-2 rounded-lg text-white text-sm font-medium"
-            style={{ background: 'var(--accent)' }}
+      <div ref={controlsRowRef} className="space-y-3 mb-6">
+        {/* Active steer badge */}
+        {steer && (
+          <div
+            className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs border"
+            style={{ background: '#7c3aed18', borderColor: '#7c3aed60', color: '#a78bfa' }}
           >
-            {status === 'error' ? '↺ Retry Discussion' : '▶ Start Discussion'}
-          </button>
+            <span className="font-semibold shrink-0">Steering ({steer.turnsLeft} left):</span>
+            <span className="opacity-80 italic">{steer.directive}</span>
+          </div>
         )}
-        {status === 'running' && (
-          <button
-            onClick={handleStop}
-            className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-red-500 hover:text-red-400"
-            style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
-          >
-            ■ Stop
-          </button>
-        )}
-        {(status === 'completed' || (status === 'idle' && turns.length > 0)) && (
-          <button
-            onClick={handleGenerateReport}
-            disabled={isGeneratingReport}
-            className="px-5 py-2 rounded-lg text-white text-sm font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ background: '#10b981' }}
-          >
-            {isGeneratingReport ? (
-              <>
-                <svg className="animate-spin w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-                Generating…
-              </>
-            ) : 'Generate Report →'}
-          </button>
-        )}
-        {meeting.status === 'completed' && (
-          <Link
-            href={`/meetings/${id}/report`}
-            className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-purple-500"
-            style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
-          >
-            View Report
-          </Link>
-        )}
-        {turns.length > 0 && status !== 'running' && (
-          <button
-            onClick={() => setRerunConfirm(true)}
-            className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors ml-auto"
-            style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
-          >
-            ↺ Rerun
-          </button>
-        )}
+
+        {/* Button row */}
+        <div className="flex flex-wrap gap-3">
+          {canStart && (
+            <button
+              onClick={() => startDiscussion()}
+              className="px-5 py-2 rounded-lg text-white text-sm font-medium"
+              style={{ background: 'var(--accent)' }}
+            >
+              {status === 'error' ? '↺ Retry Discussion' : '▶ Start Discussion'}
+            </button>
+          )}
+          {status === 'running' && (
+            <>
+              <button
+                onClick={handlePause}
+                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors"
+                style={{ borderColor: '#7c3aed80', color: '#a78bfa' }}
+              >
+                ⏸ Pause
+              </button>
+              <button
+                onClick={handleStop}
+                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-red-500 hover:text-red-400"
+                style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+              >
+                ■ Stop
+              </button>
+            </>
+          )}
+          {status === 'paused' && (
+            <button
+              onClick={() => handleResume()}
+              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+            >
+              ▶ Resume without steer
+            </button>
+          )}
+          {(status === 'completed' || (status === 'idle' && turns.length > 0)) && (
+            <button
+              onClick={handleGenerateReport}
+              disabled={isGeneratingReport}
+              className="px-5 py-2 rounded-lg text-white text-sm font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              style={{ background: '#10b981' }}
+            >
+              {isGeneratingReport ? (
+                <>
+                  <svg className="animate-spin w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  Generating…
+                </>
+              ) : 'Generate Report →'}
+            </button>
+          )}
+          {meeting.status === 'completed' && (
+            <Link
+              href={`/meetings/${id}/report`}
+              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-purple-500"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+            >
+              View Report
+            </Link>
+          )}
+          {turns.length > 0 && status !== 'running' && status !== 'paused' && (
+            <button
+              onClick={() => setRerunConfirm(true)}
+              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors ml-auto"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
+            >
+              ↺ Rerun
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Floating Pause pill — appears when the controls row scrolls out of view */}
+      {showFloatingPill && createPortal(
+        <button
+          onClick={handlePause}
+          className="fixed bottom-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
+          style={{ background: '#7c3aed', color: '#fff', boxShadow: '0 4px 24px #7c3aed60' }}
+          aria-label="Pause discussion"
+        >
+          ⏸ Pause
+        </button>,
+        document.body
+      )}
 
       {/* Rerun confirmation banner */}
       {rerunConfirm && (
@@ -289,18 +407,18 @@ export default function MeetingPage() {
         </div>
       )}
 
-
       {/* Progress */}
-      {(status === 'running' || turns.length > 0) && (
+      {(status === 'running' || status === 'paused' || turns.length > 0) && (
         <div className="mb-6">
           <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
-            <span>{turns.length} / {meeting.maxTurns} turns</span>
+            <span>{turns.filter((t) => t.kind !== 'interjection').length} / {meeting.maxTurns} turns</span>
             {status === 'running' && <span className="animate-pulse">● Live</span>}
+            {status === 'paused' && <span style={{ color: '#f59e0b' }}>⏸ Paused</span>}
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${(turns.length / meeting.maxTurns) * 100}%`, background: 'var(--accent)' }}
+              style={{ width: `${Math.min((turns.filter((t) => t.kind !== 'interjection').length / meeting.maxTurns) * 100, 100)}%`, background: 'var(--accent)' }}
             />
           </div>
         </div>
@@ -313,8 +431,17 @@ export default function MeetingPage() {
           <p>Click &quot;Start Discussion&quot; to begin the roundtable.</p>
         </div>
       ) : (
-        <DiscussionFeed turns={turns} personaMap={personaMap} thinkingPersonaId={thinkingPersonaId} />
+        <DiscussionFeed turns={turns} streamingTurns={streamingTurns} personaMap={personaMap} />
       )}
+
+      {/* Steer panel — slides in below the feed when paused */}
+      <SteerPanel
+        paused={status === 'paused'}
+        steer={steer}
+        draft={steerDraft}
+        setDraft={setSteerDraft}
+        onResume={handleResume}
+      />
     </div>
   )
 }
@@ -323,6 +450,7 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
     idle: { label: 'Ready', color: 'var(--muted)' },
     running: { label: 'Running', color: '#10b981' },
+    paused: { label: 'Paused', color: '#f59e0b' },
     completed: { label: 'Completed', color: 'var(--accent)' },
     error: { label: 'Error', color: '#ef4444' },
   }

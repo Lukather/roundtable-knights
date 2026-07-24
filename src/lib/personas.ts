@@ -2,27 +2,37 @@ import db from './db'
 import { Persona } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 
-function row2persona(row: Record<string, unknown>): Persona {
+interface PersonaRow {
+  id: string
+  name: string
+  role: string
+  background: string
+  personality: string
+  expertise: string
+  created_at: string
+}
+
+function row2persona(row: PersonaRow): Persona {
   return {
-    id: row.id as string,
-    name: row.name as string,
-    role: row.role as string,
-    background: row.background as string,
-    personality: row.personality as string,
-    expertise: JSON.parse((row.expertise as string) || '[]'),
-    createdAt: row.created_at as string,
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    background: row.background,
+    personality: row.personality,
+    expertise: JSON.parse(row.expertise || '[]') as string[],
+    createdAt: row.created_at,
   }
 }
 
 export function listPersonas(): Persona[] {
   const rows = db.prepare('SELECT * FROM personas ORDER BY created_at DESC').all()
-  return (rows as Record<string, unknown>[]).map(row2persona)
+  return (rows as PersonaRow[]).map(row2persona)
 }
 
 export function getPersona(id: string): Persona | null {
   const row = db.prepare('SELECT * FROM personas WHERE id = ?').get(id)
   if (!row) return null
-  return row2persona(row as Record<string, unknown>)
+  return row2persona(row as PersonaRow)
 }
 
 export function createPersona(data: Omit<Persona, 'id' | 'createdAt'>): Persona {

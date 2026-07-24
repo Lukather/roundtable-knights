@@ -15,7 +15,7 @@ export interface Meeting {
   context: string
   personaIds: string[]
   attachmentIds: string[]
-  status: 'idle' | 'running' | 'completed' | 'error'
+  status: 'idle' | 'running' | 'paused' | 'completed' | 'error'
   maxTurns: number
   currentTurn: number
   createdAt: string

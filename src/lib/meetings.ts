@@ -2,31 +2,45 @@ import db from './db'
 import { Meeting } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 
-function row2meeting(row: Record<string, unknown>): Meeting {
+interface MeetingRow {
+  id: string
+  title: string
+  topic: string
+  context: string
+  persona_ids: string
+  attachment_ids: string
+  status: string
+  max_turns: number
+  current_turn: number
+  created_at: string
+  completed_at: string | null
+}
+
+function row2meeting(row: MeetingRow): Meeting {
   return {
-    id: row.id as string,
-    title: row.title as string,
-    topic: row.topic as string,
-    context: (row.context as string) || '',
-    personaIds: JSON.parse((row.persona_ids as string) || '[]'),
-    attachmentIds: JSON.parse((row.attachment_ids as string) || '[]'),
+    id: row.id,
+    title: row.title,
+    topic: row.topic,
+    context: row.context || '',
+    personaIds: JSON.parse(row.persona_ids || '[]') as string[],
+    attachmentIds: JSON.parse(row.attachment_ids || '[]') as string[],
     status: row.status as Meeting['status'],
-    maxTurns: row.max_turns as number,
-    currentTurn: row.current_turn as number,
-    createdAt: row.created_at as string,
-    completedAt: row.completed_at as string | undefined,
+    maxTurns: row.max_turns,
+    currentTurn: row.current_turn,
+    createdAt: row.created_at,
+    completedAt: row.completed_at ?? undefined,
   }
 }
 
 export function listMeetings(): Meeting[] {
   const rows = db.prepare('SELECT * FROM meetings ORDER BY created_at DESC').all()
-  return (rows as Record<string, unknown>[]).map(row2meeting)
+  return (rows as MeetingRow[]).map(row2meeting)
 }
 
 export function getMeeting(id: string): Meeting | null {
   const row = db.prepare('SELECT * FROM meetings WHERE id = ?').get(id)
   if (!row) return null
-  return row2meeting(row as Record<string, unknown>)
+  return row2meeting(row as MeetingRow)
 }
 
 export function createMeeting(data: Omit<Meeting, 'id' | 'createdAt' | 'currentTurn' | 'status'>): Meeting {

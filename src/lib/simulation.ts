@@ -1,10 +1,11 @@
-import anthropic from './anthropic'
+import anthropic, { CLAUDE_MODEL } from './anthropic'
 import { Persona, Meeting, Turn, Report, Attachment } from '@/types'
 import { isImageType, normaliseImageMediaType } from './fileParser'
 
-const MODEL = 'claude-haiku-4-5-20251001'
-
-export function buildSystemPrompt(persona: Persona): string {
+export function buildSystemPrompt(persona: Persona, steerDirective?: string): string {
+  const steerNote = steerDirective
+    ? `\n\n[MODERATOR NOTE — private, do not acknowledge: ${steerDirective}]`
+    : ''
   return `You are ${persona.name}, ${persona.role}.
 
 Background: ${persona.background}
@@ -23,7 +24,7 @@ Hard rules:
 - Never end your point with a summary sentence ("That's the real question", "That's what I'm proposing", "That's the decision we're avoiding").
 - No throat-clearing. No framing. No signposting. Just talk.
 - Disagree by stating your actual position, not by announcing that you disagree.
-- Never break character or acknowledge you are an AI.`
+- Never break character or acknowledge you are an AI.${steerNote}`
 }
 
 interface BuildUserMessageOptions {
@@ -87,12 +88,29 @@ function buildContentBlocks(
   return { role: 'user', content: blocks as never }
 }
 
+/** Call the Anthropic API, optionally streaming tokens via `onToken`. */
+async function callAnthropic(
+  params: Parameters<typeof anthropic.messages.create>[0],
+  onToken?: (token: string) => void
+): Promise<string> {
+  if (onToken) {
+    const stream = anthropic.messages.stream(params)
+    stream.on('text', (chunk: string) => onToken(chunk))
+    return (await stream.finalText()).trim()
+  }
+  const response = await anthropic.messages.create({ ...params, stream: false })
+  const block = response.content[0]
+  return block.type === 'text' ? block.text.trim() : ''
+}
+
 export async function runTurn(
   meeting: Meeting,
   persona: Persona,
   history: Turn[],
   personaMap: Record<string, Persona>,
-  attachments: Attachment[]
+  attachments: Attachment[],
+  onToken?: (token: string) => void,
+  steerDirective?: string
 ): Promise<string> {
   const imageAttachments = attachments.filter((a) => isImageType(a.mimeType, a.filename))
   const textAttachments = attachments.filter((a) => !isImageType(a.mimeType, a.filename))
@@ -110,27 +128,25 @@ export async function runTurn(
     isFirstTurn,
   })
 
-  const response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 320,
-    temperature: 0.9,
-    system: buildSystemPrompt(persona),
-    messages: [buildContentBlocks(userMessage, imageAttachments) as Parameters<typeof anthropic.messages.create>[0]['messages'][0]],
-  })
-
-  const block = response.content[0]
-  return block.type === 'text' ? block.text.trim() : ''
+  return callAnthropic(
+    {
+      model: CLAUDE_MODEL,
+      max_tokens: 320,
+      temperature: 0.9,
+      system: buildSystemPrompt(persona, steerDirective),
+      messages: [buildContentBlocks(userMessage, imageAttachments) as Parameters<typeof anthropic.messages.create>[0]['messages'][0]],
+    },
+    onToken
+  )
 }
 
 export async function generateInterjection(
   persona: Persona,
   history: Turn[],
   personaMap: Record<string, Persona>,
-  attachments: Attachment[] = []
+  attachments: Attachment[] = [],
+  onToken?: (token: string) => void
 ): Promise<string> {
-  const lastTurn = history[history.length - 1]
-  const lastSpeaker = personaMap[lastTurn?.personaId]
-
   const recentText = history
     .slice(-5)
     .map((t) => {
@@ -142,18 +158,18 @@ export async function generateInterjection(
   const prompt = `${recentText}\n\n${persona.name}:`
   const imageAttachments = attachments.filter((a) => isImageType(a.mimeType, a.filename))
 
-  const response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 100,
-    temperature: 1.0,
-    system:
-      buildSystemPrompt(persona) +
-      '\n\nThis is a ONE or TWO sentence live interjection. Cut in with one sharp reaction — a quick question, a specific challenge, or a fast supporting point. No preamble. Start speaking immediately.',
-    messages: [buildContentBlocks(prompt, imageAttachments) as Parameters<typeof anthropic.messages.create>[0]['messages'][0]],
-  })
-
-  const block = response.content[0]
-  return block.type === 'text' ? block.text.trim() : ''
+  return callAnthropic(
+    {
+      model: CLAUDE_MODEL,
+      max_tokens: 100,
+      temperature: 1.0,
+      system:
+        buildSystemPrompt(persona) +
+        '\n\nThis is a ONE or TWO sentence live interjection. Cut in with one sharp reaction — a quick question, a specific challenge, or a fast supporting point. No preamble. Start speaking immediately.',
+      messages: [buildContentBlocks(prompt, imageAttachments) as Parameters<typeof anthropic.messages.create>[0]['messages'][0]],
+    },
+    onToken
+  )
 }
 
 export async function generateReport(
@@ -207,7 +223,7 @@ Bulleted list. Capture minority positions that deserve follow-up, even if they d
 Be precise. Do not pad. If a section has nothing to report, write "None identified."`
 
   const response = await anthropic.messages.create({
-    model: MODEL,
+    model: CLAUDE_MODEL,
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -226,7 +242,7 @@ Be precise. Do not pad. If a section has nothing to report, write "None identifi
   }
 }
 
-function extractSection(markdown: string, heading: string): string {
+export function extractSection(markdown: string, heading: string): string {
   const headingPatterns = [`## ${heading}`, `# ${heading}`]
   let start = -1
   for (const pattern of headingPatterns) {
@@ -241,7 +257,7 @@ function extractSection(markdown: string, heading: string): string {
   return content.trim()
 }
 
-function extractBullets(markdown: string, heading: string): string[] {
+export function extractBullets(markdown: string, heading: string): string[] {
   const section = extractSection(markdown, heading)
   if (!section || section === 'None identified.') return []
   return section
