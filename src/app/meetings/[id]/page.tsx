@@ -22,9 +22,9 @@ export default function MeetingPage() {
 
   // Steer panel state
   const [steerDraft, setSteerDraft] = useState('')
+  const [isPausing, setIsPausing] = useState(false)
 
   // IntersectionObserver: floating pause pill
-  const controlsRowRef = useRef<HTMLDivElement>(null)
   const [controlsVisible, setControlsVisible] = useState(true)
   const [mounted, setMounted] = useState(false)
 
@@ -47,18 +47,20 @@ export default function MeetingPage() {
   const personaMap = Object.fromEntries(personas.map((p) => [p.id, p]))
 
   // -------------------------------------------------------------------------
-  // IntersectionObserver for the floating Pause pill
+  // IntersectionObserver for the floating Pause pill.
+  // Using a callback ref so the observer attaches as soon as the controls row
+  // mounts (which only happens after the meeting has loaded).
   // -------------------------------------------------------------------------
-  useEffect(() => {
-    setMounted(true)
-    const el = controlsRowRef.current
+  const obsRef = useRef<IntersectionObserver | null>(null)
+  const controlsRowRef = useCallback((el: HTMLDivElement | null) => {
+    obsRef.current?.disconnect()
     if (!el) return
-    const obs = new IntersectionObserver(
+    setMounted(true)
+    obsRef.current = new IntersectionObserver(
       ([entry]) => setControlsVisible(entry.isIntersecting),
       { threshold: 0.5 }
     )
-    obs.observe(el)
-    return () => obs.disconnect()
+    obsRef.current.observe(el)
   }, [])
 
   const showFloatingPill = mounted && status === 'running' && !controlsVisible
@@ -117,6 +119,7 @@ export default function MeetingPage() {
           } else if (data.type === 'steer') {
             setSteer(data.directive ? { directive: data.directive, turnsLeft: data.turnsLeft } : null)
           } else if (data.type === 'paused') {
+            setIsPausing(false)
             setStatus('paused')
           } else if (data.type === 'done') {
             setStatus(data.status === 'completed' ? 'completed' : 'idle')
@@ -137,10 +140,12 @@ export default function MeetingPage() {
   // Pause / Resume / Stop
   // -------------------------------------------------------------------------
   async function handlePause() {
+    setIsPausing(true)
     await fetch(`/api/meetings/${id}/pause`, { method: 'POST' })
   }
 
   function handleResume(directive?: string) {
+    setIsPausing(false)
     setSteerDraft('')
     startDiscussion(directive)
   }
@@ -303,10 +308,11 @@ export default function MeetingPage() {
             <>
               <button
                 onClick={handlePause}
-                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors"
+                disabled={isPausing}
+                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-60"
                 style={{ borderColor: '#7c3aed80', color: '#a78bfa' }}
               >
-                ⏸ Pause
+                {isPausing ? '⏸ Pausing…' : '⏸ Pause'}
               </button>
               <button
                 onClick={handleStop}
@@ -369,11 +375,12 @@ export default function MeetingPage() {
       {showFloatingPill && createPortal(
         <button
           onClick={handlePause}
-          className="fixed bottom-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95"
+          disabled={isPausing}
+          className="fixed bottom-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
           style={{ background: '#7c3aed', color: '#fff', boxShadow: '0 4px 24px #7c3aed60' }}
           aria-label="Pause discussion"
         >
-          ⏸ Pause
+          {isPausing ? '⏸ Pausing…' : '⏸ Pause'}
         </button>,
         document.body
       )}
@@ -437,7 +444,6 @@ export default function MeetingPage() {
       {/* Steer panel — slides in below the feed when paused */}
       <SteerPanel
         paused={status === 'paused'}
-        steer={steer}
         draft={steerDraft}
         setDraft={setSteerDraft}
         onResume={handleResume}

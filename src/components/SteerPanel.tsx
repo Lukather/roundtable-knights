@@ -1,38 +1,41 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { SteerState } from '@/store/meetingStore'
 
 const STEER_TURNS = 3
 
 interface Props {
   /** Whether the meeting is currently paused and awaiting a steer or resume. */
   paused: boolean
-  /** Currently active steer directive, if any (shown as a badge above the feed). */
-  steer: SteerState | null
   draft: string
   setDraft: (v: string) => void
   onResume: (directive?: string) => void
 }
 
-export default function SteerPanel({ paused, steer, draft, setDraft, onResume }: Props) {
+export default function SteerPanel({ paused, draft, setDraft, onResume }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!paused) return
+    // Wait for the CSS transition to open the panel before scrolling and focusing
     const t = setTimeout(() => {
       textareaRef.current?.focus()
-      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 50)
+      panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }, 320)
     return () => clearTimeout(t)
   }, [paused])
 
   return (
     <div
       ref={panelRef}
-      className="overflow-hidden transition-all duration-300 mt-6"
-      style={{ maxHeight: paused ? '240px' : '0px', opacity: paused ? 1 : 0, pointerEvents: paused ? 'auto' : 'none' }}
+      className="overflow-hidden transition-all duration-300"
+      style={{
+        maxHeight: paused ? '240px' : '0px',
+        opacity: paused ? 1 : 0,
+        marginTop: paused ? '24px' : '0px',
+        pointerEvents: paused ? 'auto' : 'none',
+      }}
     >
       <div
         className="rounded-xl border p-4 space-y-3"

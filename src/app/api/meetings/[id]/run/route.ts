@@ -56,7 +56,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const stream = new ReadableStream({
     async start(controller) {
       const enc = new TextEncoder()
+      let closed = false
+
+      const close = () => {
+        if (closed) return
+        closed = true
+        controller.close()
+      }
+
       const send = (data: object) => {
+        if (closed) return
         try {
           controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
         } catch (err) {
@@ -88,7 +97,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             activeRuns.delete(meetingId)
             updateMeetingStatus(meetingId, 'paused', roundIndex)
             send({ type: 'paused' })
-            controller.close()
+            close()
             return
           }
 
@@ -172,7 +181,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         send({ type: 'error', message: String(err) })
       } finally {
         activeRuns.delete(meetingId)
-        controller.close()
+        close()
       }
     },
   })
