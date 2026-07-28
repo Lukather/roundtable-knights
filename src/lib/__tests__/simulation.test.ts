@@ -41,6 +41,15 @@ const interjectionTurn: Turn = {
   kind: 'interjection',
 }
 
+const moderatorTurn: Turn = {
+  ...regularTurn,
+  id: 't3',
+  turnIndex: 2,
+  personaId: 'moderator',
+  content: 'Bring this back to the budget.',
+  kind: 'moderator',
+}
+
 // ---------------------------------------------------------------------------
 // buildSystemPrompt
 // ---------------------------------------------------------------------------
@@ -189,6 +198,15 @@ describe('buildUserMessage (subsequent turns)', () => {
     // The last 6 should appear
     expect(msg).toContain('Turn content 4')
     expect(msg).toContain('Turn content 9')
+  })
+
+  it('excludes moderator turns from history shown to personas', () => {
+    const msg = buildUserMessage({
+      ...baseOpts,
+      history: [regularTurn, moderatorTurn],
+    })
+    expect(msg).not.toContain(moderatorTurn.content)
+    expect(msg).toContain(regularTurn.content)
   })
 })
 

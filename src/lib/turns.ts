@@ -13,13 +13,17 @@ interface TurnRow {
 }
 
 function row2turn(row: TurnRow): Turn {
+  const kind: Turn['kind'] =
+    row.kind === 'interjection' ? 'interjection'
+    : row.kind === 'moderator' ? 'moderator'
+    : 'regular'
   return {
     id: row.id,
     meetingId: row.meeting_id,
     turnIndex: row.turn_index,
     personaId: row.persona_id,
     content: row.content,
-    kind: row.kind === 'interjection' ? 'interjection' : 'regular',
+    kind,
     createdAt: row.created_at,
   }
 }

@@ -53,7 +53,7 @@ export function buildUserMessage(opts: BuildUserMessageOptions): string {
     return msg
   }
 
-  const recentHistory = history.slice(-6)
+  const recentHistory = history.filter((t) => t.kind !== 'moderator').slice(-6)
   const historyText = recentHistory
     .map((t) => {
       const p = personaMap[t.personaId]
@@ -148,6 +148,7 @@ export async function generateInterjection(
   onToken?: (token: string) => void
 ): Promise<string> {
   const recentText = history
+    .filter((t) => t.kind !== 'moderator')
     .slice(-5)
     .map((t) => {
       const p = personaMap[t.personaId]
@@ -180,6 +181,7 @@ export async function generateReport(
   const personaMap = Object.fromEntries(personas.map((p) => [p.id, p]))
 
   const transcript = turns
+    .filter((t) => t.kind !== 'moderator')
     .map((t) => {
       const p = personaMap[t.personaId]
       const label = t.kind === 'interjection'

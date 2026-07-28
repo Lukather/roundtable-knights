@@ -6,7 +6,7 @@ import { Turn, Meeting } from '@/types'
 export interface StreamingTurn {
   id: string
   personaId: string
-  kind: 'regular' | 'interjection'
+  kind: 'regular' | 'interjection' | 'moderator'
   content: string
 }
 
@@ -26,7 +26,7 @@ interface MeetingState {
   setStatus: (status: Meeting['status']) => void
   setSteer: (steer: SteerState | null) => void
   setGeneratingReport: (val: boolean) => void
-  startStreamingTurn: (id: string, personaId: string, kind: 'regular' | 'interjection') => void
+  startStreamingTurn: (id: string, personaId: string, kind: 'regular' | 'interjection' | 'moderator') => void
   appendToken: (id: string, token: string) => void
   commitTurn: (turn: Turn) => void
   reset: () => void

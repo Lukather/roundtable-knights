@@ -78,4 +78,8 @@ try {
   db.exec(`ALTER TABLE turns ADD COLUMN kind TEXT NOT NULL DEFAULT 'regular'`)
 } catch { /* already exists */ }
 
+// Migrate: SQLite CHECK constraints can't be altered, but we store kind as free-text
+// and validate in application code. No schema change needed for 'moderator' — the
+// existing DEFAULT 'regular' column already accepts any text value.
+
 export default db

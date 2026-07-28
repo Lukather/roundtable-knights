@@ -2,6 +2,8 @@ import { Turn, Persona } from '@/types'
 import ReactMarkdown from 'react-markdown'
 import { getInitials, avatarColor, avatarColorHex } from '@/lib/avatarUtils'
 
+const MODERATOR_COLOR = '#f59e0b'
+
 interface Props {
   turn: Turn
   persona: Persona | undefined
@@ -13,6 +15,57 @@ export default function TurnBubble({ turn, persona, index, isStreaming }: Props)
   const name = persona?.name ?? 'Unknown'
   const role = persona?.role ?? ''
   const color = persona ? avatarColorHex(persona.id) : '#6b7280'
+
+  // -------------------------------------------------------------------------
+  // Moderator bubble — right-aligned, amber, italic, "M" avatar
+  // -------------------------------------------------------------------------
+  if (turn.kind === 'moderator') {
+    return (
+      <div className="flex gap-3 justify-end animate-fade-in">
+        <div className="max-w-[85%] min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-end gap-2 mb-1.5">
+            <span className="text-xs font-semibold" style={{ color: MODERATOR_COLOR }}>
+              Moderator
+            </span>
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: `${MODERATOR_COLOR}20`, color: MODERATOR_COLOR }}
+            >
+              directive
+            </span>
+          </div>
+
+          {/* Bubble */}
+          <div
+            className="rounded-xl rounded-tr-none px-4 py-3 border-r-[3px]"
+            style={{
+              background: `${MODERATOR_COLOR}18`,
+              borderRightColor: `${MODERATOR_COLOR}60`,
+              color: 'var(--foreground)',
+            }}
+          >
+            <p className="text-sm italic" style={{ color: 'var(--foreground)' }}>
+              {turn.content}
+              {isStreaming && <StreamingCursor color={MODERATOR_COLOR} />}
+            </p>
+          </div>
+        </div>
+
+        {/* "M" avatar */}
+        <div className="flex-shrink-0 pt-0.5">
+          <div className="rounded-full p-0.5" style={{ background: `${MODERATOR_COLOR}40` }}>
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ background: MODERATOR_COLOR }}
+            >
+              M
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (turn.kind === 'interjection') {
     return (

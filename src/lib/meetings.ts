@@ -71,3 +71,7 @@ export function addAttachmentToMeeting(meetingId: string, attachmentId: string):
   const ids = [...meeting.attachmentIds, attachmentId]
   db.prepare('UPDATE meetings SET attachment_ids=? WHERE id=?').run(JSON.stringify(ids), meetingId)
 }
+
+export function updateMeetingMaxTurns(meetingId: string, maxTurns: number): void {
+  db.prepare('UPDATE meetings SET max_turns=? WHERE id=?').run(maxTurns, meetingId)
+}

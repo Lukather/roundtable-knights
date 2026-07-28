@@ -1,18 +1,16 @@
 import { NextRequest } from 'next/server'
-import { getMeeting, updateMeetingStatus } from '@/lib/meetings'
+import { getMeeting, updateMeetingStatus, updateMeetingMaxTurns } from '@/lib/meetings'
 import { getPersona } from '@/lib/personas'
 import { listTurns, createTurn } from '@/lib/turns'
 import { listAttachments } from '@/lib/attachments'
 import { runTurn, generateInterjection } from '@/lib/simulation'
 import { activeRuns, pendingPause, pendingDirective } from '@/lib/activeRuns'
+import { STEER_TURNS } from '@/lib/constants'
 import { Persona } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
-
-/** How many turns a steer directive stays active after being submitted */
-const STEER_TURNS = 3
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const meetingId = params.id
@@ -24,17 +22,29 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return new Response(JSON.stringify({ error: 'Meeting is already running' }), { status: 409 })
   }
 
-  // Optional steer directive sent when resuming after a pause
+  // Optional steer directive + extraTurns sent when resuming after a pause
   let bodyDirective: string | undefined
+  let bodyExtraTurns = 0
   try {
     const body = await req.json().catch(() => ({}))
     if (typeof body?.directive === 'string' && body.directive.trim()) {
       bodyDirective = body.directive.trim()
     }
+    if (typeof body?.extraTurns === 'number' && body.extraTurns > 0 && bodyDirective) {
+      bodyExtraTurns = Math.min(body.extraTurns, 10)
+    }
   } catch {}
 
   if (bodyDirective) {
     pendingDirective.set(meetingId, bodyDirective)
+  }
+
+  // Apply extra turns to maxTurns before starting the loop so the progress bar
+  // and loop bound are both consistent from the first token.
+  let effectiveMaxTurns = meeting.maxTurns
+  if (bodyDirective && bodyExtraTurns > 0) {
+    effectiveMaxTurns = meeting.maxTurns + bodyExtraTurns
+    updateMeetingMaxTurns(meetingId, effectiveMaxTurns)
   }
 
   const personas: Persona[] = []
@@ -77,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         const existingTurns = listTurns(meetingId)
         for (const t of existingTurns) send({ type: 'turn', turn: t })
 
-        let roundIndex = existingTurns.filter((t) => t.kind !== 'interjection').length
+        let roundIndex = existingTurns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length
         let insertIndex = existingTurns.length
         let lastWasInterjection = false
 
@@ -86,11 +96,25 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         let steerTurnsLeft = activeDirective ? STEER_TURNS : 0
         pendingDirective.delete(meetingId)
 
+        // Create moderator bubble turn before the first persona turn when a directive is present
         if (activeDirective) {
+          const moderatorTurn = createTurn({
+            id: uuidv4(),
+            meetingId,
+            turnIndex: insertIndex++,
+            personaId: 'moderator',
+            content: activeDirective,
+            kind: 'moderator',
+          })
+          send({ type: 'turn', turn: moderatorTurn })
           send({ type: 'steer', directive: activeDirective, turnsLeft: steerTurnsLeft })
+          // Notify client of updated maxTurns if it changed
+          if (bodyExtraTurns > 0) {
+            send({ type: 'max_turns', maxTurns: effectiveMaxTurns })
+          }
         }
 
-        while (roundIndex < meeting.maxTurns && activeRuns.get(meetingId)) {
+        while (roundIndex < effectiveMaxTurns && activeRuns.get(meetingId)) {
           // Check for a pending pause before starting the next turn
           if (pendingPause.has(meetingId)) {
             pendingPause.delete(meetingId)
@@ -139,7 +163,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
           // Spontaneous interjection: ~40% chance, never after the final turn
           const shouldInterject =
-            roundIndex < meeting.maxTurns &&
+            roundIndex < effectiveMaxTurns &&
             !lastWasInterjection &&
             activeRuns.get(meetingId) &&
             Math.random() < 0.4

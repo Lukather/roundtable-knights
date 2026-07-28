@@ -38,7 +38,7 @@ export interface Turn {
   turnIndex: number
   personaId: string
   content: string
-  kind: 'regular' | 'interjection'
+  kind: 'regular' | 'interjection' | 'moderator'
   createdAt: string
 }
 

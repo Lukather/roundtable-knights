@@ -68,7 +68,7 @@ export default function MeetingPage() {
   // -------------------------------------------------------------------------
   // Core: start / resume discussion (accepts optional steer directive)
   // -------------------------------------------------------------------------
-  const startDiscussion = useCallback(async (directive?: string) => {
+  const startDiscussion = useCallback(async (directive?: string, extraTurns?: number) => {
     if (abortRef.current) abortRef.current.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
@@ -77,7 +77,12 @@ export default function MeetingPage() {
     setStatus('running')
 
     try {
-      const body = directive ? JSON.stringify({ directive }) : undefined
+      const bodyObj: Record<string, unknown> = {}
+      if (directive) {
+        bodyObj.directive = directive
+        if (extraTurns && extraTurns > 0) bodyObj.extraTurns = extraTurns
+      }
+      const body = Object.keys(bodyObj).length > 0 ? JSON.stringify(bodyObj) : undefined
       const res = await fetch(`/api/meetings/${id}/run`, {
         method: 'POST',
         headers: body ? { 'Content-Type': 'application/json' } : undefined,
@@ -118,6 +123,8 @@ export default function MeetingPage() {
             commitTurn(data.turn as Turn)
           } else if (data.type === 'steer') {
             setSteer(data.directive ? { directive: data.directive, turnsLeft: data.turnsLeft } : null)
+          } else if (data.type === 'max_turns') {
+            setMeeting((prev) => prev ? { ...prev, maxTurns: data.maxTurns } : prev)
           } else if (data.type === 'paused') {
             setIsPausing(false)
             setStatus('paused')
@@ -144,10 +151,10 @@ export default function MeetingPage() {
     await fetch(`/api/meetings/${id}/pause`, { method: 'POST' })
   }
 
-  function handleResume(directive?: string) {
+  function handleResume(directive?: string, extraTurns?: number) {
     setIsPausing(false)
     setSteerDraft('')
-    startDiscussion(directive)
+    startDiscussion(directive, extraTurns)
   }
 
   async function handleStop() {
@@ -418,14 +425,14 @@ export default function MeetingPage() {
       {(status === 'running' || status === 'paused' || turns.length > 0) && (
         <div className="mb-6">
           <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
-            <span>{turns.filter((t) => t.kind !== 'interjection').length} / {meeting.maxTurns} turns</span>
+            <span>{turns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length} / {meeting.maxTurns} turns</span>
             {status === 'running' && <span className="animate-pulse">● Live</span>}
             {status === 'paused' && <span style={{ color: '#f59e0b' }}>⏸ Paused</span>}
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min((turns.filter((t) => t.kind !== 'interjection').length / meeting.maxTurns) * 100, 100)}%`, background: 'var(--accent)' }}
+              style={{ width: `${Math.min((turns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length / meeting.maxTurns) * 100, 100)}%`, background: 'var(--accent)' }}
             />
           </div>
         </div>
