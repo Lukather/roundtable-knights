@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </a>
               <a
                 href="/meetings/new"
-                className="px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
+                className="px-4 py-2 rounded-lg text-white text-sm font-medium transition-[opacity,transform] hover:opacity-90 active:scale-[0.96]"
                 style={{ background: 'var(--accent)' }}
               >
                 New Meeting

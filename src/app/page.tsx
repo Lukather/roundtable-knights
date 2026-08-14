@@ -218,7 +218,7 @@ export default function HomePage() {
               AI-powered decision facilitation
             </div>
 
-            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-5">
+            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-5 text-balance">
               Run the meeting<br />
               <span style={{ color: 'var(--accent)' }}>before the meeting.</span>
             </h1>
@@ -231,17 +231,17 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/meetings/new"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium text-sm transition-[opacity,transform] hover:opacity-90 active:scale-[0.96]"
                 style={{ background: 'var(--accent)' }}
               >
                 Start a roundtable
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
               </Link>
               <Link
                 href="/personas"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm border transition-colors hover:border-purple-500"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96]"
                 style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
               >
                 Manage personas
@@ -329,7 +329,7 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold text-white">Recent Meetings</h2>
           <Link
             href="/meetings/new"
-            className="text-xs px-3 py-1.5 rounded-lg border transition-colors hover:border-purple-500"
+            className="text-xs px-3 py-1.5 rounded-lg border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96]"
             style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
           >
             + New meeting
@@ -348,7 +348,7 @@ export default function HomePage() {
             <p className="text-sm mb-5">Start your first meeting to see it here.</p>
             <Link
               href="/meetings/new"
-              className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg text-white"
+              className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg text-white transition-[opacity,transform] hover:opacity-90 active:scale-[0.96]"
               style={{ background: 'var(--accent)' }}
             >
               Start a roundtable →
@@ -363,7 +363,7 @@ export default function HomePage() {
                 <Link
                   key={m.id}
                   href={`/meetings/${m.id}`}
-                  className="flex items-center gap-4 px-5 py-4 rounded-xl border transition-colors hover:border-purple-500/50"
+                  className="flex items-center gap-4 px-5 py-4 rounded-xl border transition-[border-color,transform] hover:border-purple-500/50 active:scale-[0.99]"
                   style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
                 >
                   <div className="min-w-0 flex-1">

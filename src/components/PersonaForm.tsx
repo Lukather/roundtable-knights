@@ -10,7 +10,7 @@ interface Props {
   personaId?: string
 }
 
-const inputClass = "w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-purple-500 transition-colors"
+const inputClass = "w-full px-3 py-2 rounded-lg border text-sm transition-colors"
 const inputStyle = { background: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--foreground)' }
 const labelClass = "block text-sm font-medium mb-1.5"
 const labelStyle = { color: 'var(--muted)' }
@@ -102,7 +102,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
           <button
             type="button"
             onClick={() => setAiMode(false)}
-            className="px-4 py-1.5 rounded-md text-sm font-medium transition-all"
+            className="px-4 py-1.5 rounded-md text-sm font-medium transition-[background-color,transform] active:scale-[0.96]"
             style={
               !aiMode
                 ? { background: 'var(--accent)', color: '#fff' }
@@ -114,7 +114,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
           <button
             type="button"
             onClick={() => setAiMode(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-all"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-[background-color,transform] active:scale-[0.96]"
             style={
               aiMode
                 ? { background: 'var(--accent)', color: '#fff' }
@@ -154,7 +154,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
               type="button"
               onClick={handleGenerate}
               disabled={generating || !description.trim()}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium transition-opacity disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
               style={{ background: 'var(--accent)' }}
             >
               {generating ? (
@@ -236,7 +236,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 rounded-lg text-white text-sm font-medium transition-opacity disabled:opacity-50"
+              className="px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
               style={{ background: 'var(--accent)' }}
             >
               {saving ? 'Saving…' : mode === 'create' ? 'Create Persona' : 'Save Changes'}

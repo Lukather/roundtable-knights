@@ -305,10 +305,11 @@ export default function MeetingPage() {
           {canStart && (
             <button
               onClick={() => startDiscussion()}
-              className="px-5 py-2 rounded-lg text-white text-sm font-medium"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96]"
               style={{ background: 'var(--accent)' }}
             >
-              {status === 'error' ? '↺ Retry Discussion' : '▶ Start Discussion'}
+              <PlayIcon />
+              {status === 'error' ? 'Retry Discussion' : 'Start Discussion'}
             </button>
           )}
           {status === 'running' && (
@@ -316,34 +317,37 @@ export default function MeetingPage() {
               <button
                 onClick={handlePause}
                 disabled={isPausing}
-                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors disabled:opacity-60"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,background-color,transform] hover:bg-purple-500/10 active:scale-[0.96] disabled:opacity-60"
                 style={{ borderColor: '#7c3aed80', color: '#a78bfa' }}
               >
-                {isPausing ? '⏸ Pausing…' : '⏸ Pause'}
+                <PauseIcon />
+                {isPausing ? 'Pausing…' : 'Pause'}
               </button>
               <button
                 onClick={handleStop}
-                className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-red-500 hover:text-red-400"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,transform] hover:border-red-500 hover:text-red-400 active:scale-[0.96]"
                 style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
               >
-                ■ Stop
+                <StopIcon />
+                Stop
               </button>
             </>
           )}
           {status === 'paused' && (
             <button
               onClick={() => handleResume()}
-              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96]"
               style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
             >
-              ▶ Resume without steer
+              <PlayIcon />
+              Resume without steer
             </button>
           )}
           {(status === 'completed' || (status === 'idle' && turns.length > 0)) && (
             <button
               onClick={handleGenerateReport}
               disabled={isGeneratingReport}
-              className="px-5 py-2 rounded-lg text-white text-sm font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ background: '#10b981' }}
             >
               {isGeneratingReport ? (
@@ -360,7 +364,7 @@ export default function MeetingPage() {
           {meeting.status === 'completed' && (
             <Link
               href={`/meetings/${id}/report`}
-              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors hover:border-purple-500"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96]"
               style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
             >
               View Report
@@ -369,10 +373,11 @@ export default function MeetingPage() {
           {turns.length > 0 && status !== 'running' && status !== 'paused' && (
             <button
               onClick={() => setRerunConfirm(true)}
-              className="px-5 py-2 rounded-lg text-sm font-medium border transition-colors ml-auto"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96] ml-auto"
               style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
             >
-              ↺ Rerun
+              <RerunIcon />
+              Rerun
             </button>
           )}
         </div>
@@ -383,11 +388,12 @@ export default function MeetingPage() {
         <button
           onClick={handlePause}
           disabled={isPausing}
-          className="fixed bottom-20 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+          className="fixed bottom-20 right-6 z-50 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-[transform,opacity] duration-200 hover:scale-105 active:scale-[0.96] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
           style={{ background: '#7c3aed', color: '#fff', boxShadow: '0 4px 24px #7c3aed60' }}
           aria-label="Pause discussion"
         >
-          {isPausing ? '⏸ Pausing…' : '⏸ Pause'}
+          <PauseIcon />
+          {isPausing ? 'Pausing…' : 'Pause'}
         </button>,
         document.body
       )}
@@ -425,13 +431,13 @@ export default function MeetingPage() {
       {(status === 'running' || status === 'paused' || turns.length > 0) && (
         <div className="mb-6">
           <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
-            <span>{turns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length} / {meeting.maxTurns} turns</span>
+            <span className="tabular-nums">{turns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length} / {meeting.maxTurns} turns</span>
             {status === 'running' && <span className="animate-pulse">● Live</span>}
             {status === 'paused' && <span style={{ color: '#f59e0b' }}>⏸ Paused</span>}
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full transition-[width] duration-500"
               style={{ width: `${Math.min((turns.filter((t) => t.kind !== 'interjection' && t.kind !== 'moderator').length / meeting.maxTurns) * 100, 100)}%`, background: 'var(--accent)' }}
             />
           </div>
@@ -475,5 +481,40 @@ function StatusBadge({ status }: { status: string }) {
     >
       {s.label}
     </span>
+  )
+}
+
+// Feather-style control icons — strokeWidth 2 to match the 500-weight labels
+function PlayIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+  )
+}
+
+function PauseIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <line x1="6" y1="4" x2="6" y2="20" />
+      <line x1="18" y1="4" x2="18" y2="20" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="6" y="6" width="12" height="12" rx="1" />
+    </svg>
+  )
+}
+
+function RerunIcon() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="1 4 1 10 7 10" />
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </svg>
   )
 }

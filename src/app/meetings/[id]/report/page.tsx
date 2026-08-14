@@ -81,14 +81,14 @@ export default function ReportPage() {
           <div className="flex gap-2 flex-shrink-0">
             <button
               onClick={handleCopy}
-              className="px-4 py-2 rounded-lg text-sm border transition-colors hover:border-purple-500 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-lg text-sm border transition-[border-color,transform] hover:border-purple-500 flex items-center gap-1.5 active:scale-[0.96]"
               style={{ borderColor: 'var(--border)', color: copied ? 'var(--accent)' : 'var(--muted)' }}
             >
               {copied ? '✓ Copied' : 'Copy MD'}
             </button>
             <button
               onClick={handleExport}
-              className="px-4 py-2 rounded-lg text-sm border transition-colors hover:border-purple-500"
+              className="px-4 py-2 rounded-lg text-sm border transition-[border-color,transform] hover:border-purple-500 active:scale-[0.96]"
               style={{ borderColor: 'var(--border)', color: 'var(--muted)' }}
             >
               Export .md

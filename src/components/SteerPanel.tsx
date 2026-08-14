@@ -39,7 +39,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
   return (
     <div
       ref={panelRef}
-      className="overflow-hidden transition-all duration-300"
+      className="overflow-hidden transition-[max-height,opacity,margin-top] duration-300"
       style={{
         maxHeight: paused ? '320px' : '0px',
         opacity: paused ? 1 : 0,
@@ -53,8 +53,11 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
       >
         {/* Header */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold" style={{ color: '#a78bfa' }}>
-            ✦ Steer the conversation
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#a78bfa' }}>
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+            </svg>
+            Steer the conversation
           </span>
           <span className="text-xs" style={{ color: 'var(--muted)' }}>
             · active for next {STEER_TURNS} turns
@@ -73,7 +76,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
           }}
           placeholder={'e.g. \u201cbring this back to the budget\u201d, \u201cpush harder on the risk angle\u201d\u2026'}
           rows={2}
-          className="w-full text-sm resize-none rounded-lg px-3 py-2 outline-none"
+          className="w-full text-sm resize-none rounded-lg px-3 py-2"
           style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
@@ -90,7 +93,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
             <button
               onClick={() => setExtraTurns((n) => Math.max(0, n - 1))}
               disabled={extraTurns <= 0}
-              className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
               style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
               aria-label="Decrease extra turns"
             >
@@ -105,7 +108,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
             <button
               onClick={() => setExtraTurns((n) => Math.min(STEER_EXTRA_TURNS_MAX, n + 1))}
               disabled={extraTurns >= STEER_EXTRA_TURNS_MAX}
-              className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
+              className="w-8 h-8 rounded flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-30"
               style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
               aria-label="Increase extra turns"
             >
@@ -131,7 +134,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
             <button
               onClick={handleSendAndResume}
               disabled={!draft.trim()}
-              className="px-4 py-1.5 rounded-lg text-white text-xs font-medium transition-opacity disabled:opacity-40"
+              className="px-4 py-1.5 rounded-lg text-white text-xs font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-40"
               style={{ background: '#7c3aed' }}
             >
               Send & Resume →

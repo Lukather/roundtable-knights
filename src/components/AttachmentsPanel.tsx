@@ -121,10 +121,20 @@ function AttachmentCard({ attachment }: { attachment: Attachment }) {
       className="rounded-lg border overflow-hidden"
       style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
     >
-      {/* File row */}
-      <button
+      {/* File row — div role=button: the download control inside can't be a
+          nested <button> (invalid HTML, breaks a11y) */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
         onClick={handleToggle}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            handleToggle()
+          }
+        }}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer transition-colors hover:bg-white/5"
       >
         <FileIcon mimeType={attachment.mimeType} filename={attachment.filename} />
         <span className="flex-1 min-w-0 text-sm font-medium text-white truncate">
@@ -152,7 +162,7 @@ function AttachmentCard({ attachment }: { attachment: Attachment }) {
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
-      </button>
+      </div>
 
       {/* Expanded panel */}
       {open && (

@@ -7,7 +7,7 @@ import { getInitials, avatarColor } from '@/lib/avatarUtils'
 export default function PersonaCard({ persona, onDelete }: { persona: Persona; onDelete?: (id: string) => void }) {
   return (
     <div
-      className="rounded-xl p-5 border transition-colors hover:border-purple-500/50"
+      className="rounded-xl p-5 border transition-[border-color,transform] hover:border-purple-500/50 active:scale-[0.99]"
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
     >
       <div className="flex items-start gap-4">

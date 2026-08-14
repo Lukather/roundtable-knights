@@ -65,7 +65,7 @@ export default function MeetingSetupForm() {
     }
   }
 
-  const inputClass = "w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-purple-500 transition-colors"
+  const inputClass = "w-full px-3 py-2 rounded-lg border text-sm transition-colors"
   const inputStyle = { background: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--foreground)' }
   const labelClass = "block text-sm font-medium mb-1.5"
   const labelStyle = { color: 'var(--muted)' }
@@ -138,8 +138,16 @@ export default function MeetingSetupForm() {
               return (
                 <div
                   key={p.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => togglePersona(p.id)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      togglePersona(p.id)
+                    }
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition-[background-color,border-color,transform] active:scale-[0.99]"
                   style={{
                     background: selected ? 'rgba(124, 106, 247, 0.1)' : 'var(--surface-2)',
                     borderColor: selected ? 'var(--accent)' : 'var(--border)',
@@ -195,7 +203,7 @@ export default function MeetingSetupForm() {
       <button
         type="submit"
         disabled={saving}
-        className="w-full py-3 rounded-lg text-white font-medium transition-opacity disabled:opacity-50"
+        className="w-full py-3 rounded-lg text-white font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
         style={{ background: 'var(--accent)' }}
       >
         {saving ? 'Creating Meeting…' : 'Start Roundtable →'}
