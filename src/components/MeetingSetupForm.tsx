@@ -139,6 +139,13 @@ export default function MeetingSetupForm() {
       .catch(() => setLoadingPersonas(false))
   }, [])
 
+  function refreshPersonas() {
+    setLoadingPersonas(true)
+    fetch('/api/personas')
+      .then((r) => r.json())
+      .then((data) => { setPersonas(data); setLoadingPersonas(false) })
+      .catch(() => setLoadingPersonas(false))
+  }
   const goTo = useCallback((next: StepId) => {
     setAnimKey((k) => k + 1)
     setStep(next)
@@ -314,11 +321,25 @@ export default function MeetingSetupForm() {
         {/* ━━━━ STEP 2: The Cast ━━━━ */}
         {step === 2 && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-white mb-1">Assemble the cast</h2>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                Choose who sits at the table. Each persona brings a distinct perspective and bias.
-              </p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-white mb-1">Assemble the cast</h2>
+                <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                  Choose who sits at the table. Each persona brings a distinct perspective and bias.
+                </p>
+              </div>
+              <a
+                href="/personas/new"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors hover:border-purple-500/60 hover:text-white"
+                style={{ color: 'var(--muted)', borderColor: 'var(--border)', background: 'var(--surface)' }}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                New persona
+              </a>
             </div>
 
             {/* Cast strip */}
@@ -359,6 +380,24 @@ export default function MeetingSetupForm() {
             </div>
 
             {/* Persona grid */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+                Available personas
+              </span>
+              <button
+                type="button"
+                onClick={refreshPersonas}
+                className="inline-flex items-center gap-1 text-xs transition-colors hover:text-white"
+                style={{ color: 'var(--muted)' }}
+                title="Refresh list after creating a new persona"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M10 6A4 4 0 1 1 6.5 2.05" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  <path d="M7 1l-.5 1.5L8 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Refresh
+              </button>
+            </div>
             {loadingPersonas ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4].map((i) => (
