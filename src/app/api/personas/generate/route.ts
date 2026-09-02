@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     const response = await anthropic.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 600,
+      max_tokens: 1024,
       system: `You generate structured persona profiles for a business roundtable simulation tool.
 
 Given a plain-text description of a person, output ONLY a valid JSON object with these exact fields:
@@ -37,8 +37,17 @@ Rules:
 
     const text = block.text.trim()
     const jsonStart = text.indexOf('{')
-    const jsonEnd = text.lastIndexOf('}')
-    if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON in response')
+    if (jsonStart === -1) throw new Error('No JSON in response')
+
+    // Walk forward to find the matching closing brace — avoids grabbing
+    // trailing content like "{Note: ...}" that Claude sometimes appends.
+    let depth = 0
+    let jsonEnd = -1
+    for (let i = jsonStart; i < text.length; i++) {
+      if (text[i] === '{') depth++
+      else if (text[i] === '}') { depth--; if (depth === 0) { jsonEnd = i; break } }
+    }
+    if (jsonEnd === -1) throw new Error('Unmatched braces in response')
 
     const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1))
     const { name, role, background, personality, expertise } = parsed
