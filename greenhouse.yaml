@@ -9,6 +9,7 @@ apps:
     probe: /
     env:
       NODE_ENV: production
+      DATA_DIR: /tmp/data
     secrets:
       - env: ANTHROPIC_API_KEY
         secret: greenhouselore

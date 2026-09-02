@@ -25,15 +25,11 @@ RUN apk add --no-cache python3 make g++ && \
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public/
-COPY --from=builder /app/data ./data/
 
 # Copy seed script (runs at startup to populate demo data)
 COPY --from=builder /app/scripts/seed-demo-prodstrat.mjs ./scripts/seed-demo-prodstrat.mjs
 
-# Ensure data dir is writable by the nextjs user
-RUN chown -R nextjs:nodejs /app/data
-
 USER nextjs
 
-# Seed demo data on every start, then launch the server
+# Seed demo data on every start (writes to $DATA_DIR = /tmp/data), then launch the server
 CMD ["sh", "-c", "node scripts/seed-demo-prodstrat.mjs && node server.js"]
