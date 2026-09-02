@@ -100,7 +100,8 @@ function PersonaAvatar({
       }}
     >
       <div
-        className={`w-full h-full rounded-full flex items-center justify-center text-white ${avatarColor(persona.id)}`}
+        className={`w-full h-full rounded-full flex items-center justify-center ${avatarColor(persona.id)}`}
+        style={{ color: '#fff' }}
       >
         {getInitials(persona.name)}
       </div>

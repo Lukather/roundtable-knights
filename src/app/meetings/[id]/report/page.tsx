@@ -105,7 +105,7 @@ export default function ReportPage() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs"
                 style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
               >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold ${avatarColor(p.id)}`}>
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${avatarColor(p.id)}`} style={{ color: '#fff' }}>
                   {getInitials(p.name)}
                 </span>
                 <span className="font-medium">{p.name}</span>

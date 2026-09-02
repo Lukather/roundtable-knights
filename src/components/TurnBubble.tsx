@@ -75,8 +75,8 @@ export default function TurnBubble({ turn, persona, index, isStreaming }: Props)
         <div className="flex-shrink-0 pt-0.5">
           <div className="rounded-full p-0.5" style={{ background: `${MODERATOR_HEX}40` }}>
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: MODERATOR_HEX }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{ background: MODERATOR_HEX, color: '#fff' }}
             >
               M
             </div>
@@ -140,7 +140,7 @@ export default function TurnBubble({ turn, persona, index, isStreaming }: Props)
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
-          <span className="font-semibold text-sm text-white">{name}</span>
+          <span className="font-semibold text-sm" style={{ color: 'var(--foreground)' }}>{name}</span>
           <span
             className="text-xs px-2 py-0.5 rounded-full font-medium"
             style={{ background: `${color}20`, color }}

@@ -43,7 +43,7 @@ export default function DiscussionFeed({ turns, streamingTurns, personaMap }: Pr
             <div key={streaming.id} className="flex gap-3 animate-fade-in">
               <div className="flex-shrink-0 pt-0.5">
                 <div className="rounded-full p-0.5 animate-pulse" style={{ background: `${color}40` }}>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold ${persona ? avatarColor(persona.id) : 'bg-gray-600'}`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold ${persona ? avatarColor(persona.id) : 'bg-gray-600'}`} style={{ color: '#fff' }}>
                     {persona ? getInitials(persona.name) : '…'}
                   </div>
                 </div>
