@@ -1,0 +1,18 @@
+configVersion: v2
+
+apps:
+  - name: roundtable-knights
+    build:
+      context: .
+      dockerfile: Dockerfile
+    port: 3000
+    probe: /
+    env:
+      NODE_ENV: production
+    secrets:
+      - env: ANTHROPIC_API_KEY
+        secret: anthropic-api-key   # Create this secret in Greenhouse UI → Secrets tab
+        key: ANTHROPIC_API_KEY
+    resources:
+      cpu: 250m/500m
+      memory: 256Mi/512Mi
