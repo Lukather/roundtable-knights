@@ -293,7 +293,7 @@ export default function MeetingPage() {
         {steer && (
           <div
             className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs border"
-            style={{ background: '#7c3aed18', borderColor: '#7c3aed60', color: '#a78bfa' }}
+            style={{ background: 'rgba(124,106,247,0.1)', borderColor: 'rgba(124,106,247,0.38)', color: 'var(--accent)' }}
           >
             <span className="font-semibold shrink-0">Steering ({steer.turnsLeft} left):</span>
             <span className="opacity-80 italic">{steer.directive}</span>
@@ -318,7 +318,7 @@ export default function MeetingPage() {
                 onClick={handlePause}
                 disabled={isPausing}
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium border transition-[border-color,background-color,transform] hover:bg-purple-500/10 active:scale-[0.96] disabled:opacity-60"
-                style={{ borderColor: '#7c3aed80', color: '#a78bfa' }}
+                style={{ borderColor: 'rgba(124,106,247,0.5)', color: 'var(--accent)' }}
               >
                 <PauseIcon />
                 {isPausing ? 'Pausing…' : 'Pause'}
@@ -389,7 +389,7 @@ export default function MeetingPage() {
           onClick={handlePause}
           disabled={isPausing}
           className="fixed bottom-20 right-6 z-50 inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-[transform,opacity] duration-200 hover:scale-105 active:scale-[0.96] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
-          style={{ background: '#7c3aed', color: '#fff', boxShadow: '0 4px 24px #7c3aed60' }}
+          style={{ background: 'var(--accent)', color: '#fff', boxShadow: '0 4px 24px rgba(124,106,247,0.38)' }}
           aria-label="Pause discussion"
         >
           <PauseIcon />
@@ -448,7 +448,7 @@ export default function MeetingPage() {
       {turns.length === 0 && status !== 'running' ? (
         <div className="text-center py-20" style={{ color: 'var(--muted)' }}>
           <p className="text-4xl mb-4">💬</p>
-          <p>Click &quot;Start Discussion&quot; to begin the roundtable.</p>
+          <p>Click &quot;Start Discussion&quot; to run the session through Crucible.</p>
         </div>
       ) : (
         <DiscussionFeed turns={turns} streamingTurns={streamingTurns} personaMap={personaMap} />

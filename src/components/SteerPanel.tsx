@@ -49,11 +49,11 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
     >
       <div
         className="rounded-xl border p-4 space-y-3"
-        style={{ background: 'var(--surface-2)', borderColor: '#7c3aed60' }}
+        style={{ background: 'var(--surface-2)', borderColor: 'rgba(124,106,247,0.38)' }}
       >
         {/* Header */}
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#a78bfa' }}>
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: 'var(--accent)' }}>
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
             </svg>
@@ -135,7 +135,7 @@ export default function SteerPanel({ paused, draft, setDraft, onResume }: Props)
               onClick={handleSendAndResume}
               disabled={!draft.trim()}
               className="px-4 py-1.5 rounded-lg text-white text-xs font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-40"
-              style={{ background: '#7c3aed' }}
+              style={{ background: 'var(--accent)' }}
             >
               Send & Resume →
             </button>

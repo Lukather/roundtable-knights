@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T00:00:00.000Z",
+  "title": "Design System: Roundtable Knights",
+  "extensions": {
+    "colorMeta": {
+      "void":              { "role": "neutral",   "displayName": "Void",             "canonical": "#0f0f14", "tonalRamp": ["#0a0a0e", "#0f0f14", "#14141c", "#1a1a24", "#22222e", "#2e2e3e", "#3e3e52", "#6b6b80"] },
+      "chamber":           { "role": "neutral",   "displayName": "Chamber",          "canonical": "#1a1a24", "tonalRamp": ["#0f0f14", "#1a1a24", "#22222e", "#2a2a38", "#2e2e3e", "#3e3e52", "#5a5a72", "#8888a8"] },
+      "chamber-raised":    { "role": "neutral",   "displayName": "Chamber Raised",   "canonical": "#22222e", "tonalRamp": ["#14141c", "#1a1a24", "#22222e", "#2e2e3e", "#3a3a4e", "#4e4e66", "#6b6b80", "#9898b8"] },
+      "bulwark":           { "role": "neutral",   "displayName": "Bulwark",          "canonical": "#2e2e3e", "tonalRamp": ["#1a1a24", "#22222e", "#2e2e3e", "#3e3e52", "#4e4e66", "#6b6b80", "#8888a8", "#b0b0cc"] },
+      "counsel":           { "role": "neutral",   "displayName": "Counsel",          "canonical": "#6b6b80", "tonalRamp": ["#2e2e3e", "#3e3e52", "#4e4e66", "#5a5a72", "#6b6b80", "#8888a8", "#aaaacc", "#ccccee"] },
+      "violet":            { "role": "primary",   "displayName": "Violet",           "canonical": "#7c6af7", "tonalRamp": ["#2a1a8a", "#3d28b8", "#5540d8", "#6b58f0", "#7c6af7", "#9482f8", "#b0a0fb", "#d4ccfe"] },
+      "violet-deep":       { "role": "primary",   "displayName": "Violet Deep",      "canonical": "#6b58f0", "tonalRamp": ["#1e0e78", "#2e1aa8", "#4530c8", "#5840e0", "#6b58f0", "#7c6af7", "#9482f8", "#b0a0fb"] },
+      "sentinel-green":    { "role": "tertiary",  "displayName": "Sentinel Green",   "canonical": "#10b981", "tonalRamp": ["#064e3b", "#0a6b50", "#0d8a68", "#0fa878", "#10b981", "#34d399", "#6ee7b7", "#a7f3d0"] },
+      "amber-moderator":   { "role": "secondary", "displayName": "Amber Moderator",  "canonical": "#f59e0b", "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fcd34d", "#fde68a"] },
+      "crimson-error":     { "role": "tertiary",  "displayName": "Crimson Error",    "canonical": "#ef4444", "tonalRamp": ["#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fecaca"] }
+    },
+    "typographyMeta": {
+      "headline":    { "displayName": "Headline",    "purpose": "Page-level hero titles. Used once per major view." },
+      "title":       { "displayName": "Title",       "purpose": "Section headers, card titles, dialog headers." },
+      "body":        { "displayName": "Body",        "purpose": "Turn content, descriptions, settings prose. Default reading size." },
+      "label":       { "displayName": "Label",       "purpose": "Role chips, metadata, timestamps, supporting context. Scanning, not reading." },
+      "label-upper": { "displayName": "Label Upper", "purpose": "Section eyebrows — sparse, uppercase, tracked. One per section." }
+    },
+    "shadows": [
+      { "name": "hero-lift",   "value": "0 25px 50px -12px rgba(0,0,0,0.6)", "purpose": "Applied only to the hero discussion preview card to mark it as a floating artifact." }
+    ],
+    "motion": [
+      { "name": "fade-in-up",   "value": "opacity 0 → 1, translateY 4px → 0, 220ms ease-out", "purpose": "Turn bubble entrance. Applied via .animate-fade-in. The single authored motion; not generalized." },
+      { "name": "state-shift",  "value": "transition 150ms",                                   "purpose": "Border color, background, opacity changes on hover/active states." },
+      { "name": "scale-active", "value": "scale(0.96–0.99) on :active",                        "purpose": "Tactile micro-response on interactive cards and buttons." }
+    ],
+    "breakpoints": [
+      { "name": "sm",  "value": "640px"  },
+      { "name": "md",  "value": "768px"  },
+      { "name": "lg",  "value": "1024px" },
+      { "name": "xl",  "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single violet CTA — 'Start a roundtable', 'New Meeting', 'Start Roundtable →'.",
+      "html": "<button class=\"ds-btn-primary\">Start a roundtable →</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #7c6af7; color: #ffffff; padding: 12px 24px; font-size: 0.875rem; font-weight: 500; border: none; border-radius: 12px; cursor: pointer; transition: opacity 150ms, transform 150ms; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:active { transform: scale(0.96); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; } .ds-btn-primary:focus-visible { outline: 2px solid #7c6af7; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions — 'Manage personas', 'Edit', ghost nav links.",
+      "html": "<button class=\"ds-btn-ghost\">Manage personas</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #6b6b80; padding: 8px 16px; font-size: 0.875rem; border: 1px solid #2e2e3e; border-radius: 12px; cursor: pointer; transition: border-color 150ms, color 150ms, transform 150ms; } .ds-btn-ghost:hover { color: #ffffff; border-color: rgba(124, 106, 247, 0.5); } .ds-btn-ghost:active { transform: scale(0.96); } .ds-btn-ghost:focus-visible { outline: 2px solid #7c6af7; outline-offset: 2px; }"
+    },
+    {
+      "name": "Turn Bubble",
+      "kind": "card",
+      "refersTo": "turn-bubble",
+      "description": "A speaker's message in the discussion feed. The persona color is applied to the left border and avatar ring.",
+      "html": "<div class=\"ds-turn\">\n  <div class=\"ds-turn-avatar-wrap\" style=\"--persona:#9333ea\">\n    <div class=\"ds-turn-avatar\">SC</div>\n  </div>\n  <div class=\"ds-turn-body\">\n    <div class=\"ds-turn-header\">\n      <span class=\"ds-turn-name\">Sarah Chen</span>\n      <span class=\"ds-turn-role\" style=\"--persona:#9333ea\">CTO</span>\n      <span class=\"ds-turn-index\">#1</span>\n    </div>\n    <div class=\"ds-turn-bubble\" style=\"--persona:#9333ea\">\n      The competitive data is clear — if we wait another quarter, we're playing catch-up.\n    </div>\n  </div>\n</div>",
+      "css": ".ds-turn { display: flex; gap: 12px; animation: ds-fade-in-up 220ms ease-out both; } @keyframes ds-fade-in-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } } @media (prefers-reduced-motion: reduce) { .ds-turn { animation: none; } } .ds-turn-avatar-wrap { flex-shrink: 0; padding-top: 2px; border-radius: 9999px; padding: 2px; background: color-mix(in srgb, var(--persona) 25%, transparent); } .ds-turn-avatar { width: 36px; height: 36px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; background: var(--persona); color: #fff; font-size: 12px; font-weight: 700; } .ds-turn-body { flex: 1; min-width: 0; } .ds-turn-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } .ds-turn-name { font-weight: 600; font-size: 0.875rem; color: #ffffff; } .ds-turn-role { font-size: 0.75rem; padding: 2px 8px; border-radius: 9999px; background: color-mix(in srgb, var(--persona) 13%, transparent); color: var(--persona); } .ds-turn-index { font-size: 0.75rem; margin-left: auto; color: #6b6b80; font-variant-numeric: tabular-nums; } .ds-turn-bubble { background: #22222e; color: #e8e8f0; border-radius: 16px; border-top-left-radius: 0; padding: 12px 16px; border-left: 3px solid var(--persona); font-size: 0.875rem; line-height: 1.625; }"
+    },
+    {
+      "name": "Persona Card",
+      "kind": "card",
+      "refersTo": "persona-card",
+      "description": "Card showing a persona's name, role, background, and expertise chips on the Personas list.",
+      "html": "<div class=\"ds-persona-card\">\n  <div class=\"ds-persona-avatar\">SC</div>\n  <div class=\"ds-persona-info\">\n    <div class=\"ds-persona-header\">\n      <div>\n        <p class=\"ds-persona-name\">Sarah Chen</p>\n        <p class=\"ds-persona-role\">CTO</p>\n      </div>\n      <button class=\"ds-persona-action\">Edit</button>\n    </div>\n    <p class=\"ds-persona-bio\">Pragmatic technologist with 15 years scaling infrastructure at Series B–D companies.</p>\n    <div class=\"ds-persona-chips\">\n      <span class=\"ds-chip\">Cloud Architecture</span>\n      <span class=\"ds-chip\">Team Scaling</span>\n      <span class=\"ds-chip\">Security</span>\n    </div>\n  </div>\n</div>",
+      "css": ".ds-persona-card { background: #1a1a24; border: 1px solid #2e2e3e; border-radius: 12px; padding: 20px; display: flex; gap: 16px; align-items: flex-start; transition: border-color 150ms, transform 150ms; } .ds-persona-card:hover { border-color: rgba(124, 106, 247, 0.5); } .ds-persona-card:active { transform: scale(0.99); } .ds-persona-avatar { width: 40px; height: 40px; border-radius: 9999px; background: #9333ea; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 700; flex-shrink: 0; } .ds-persona-info { flex: 1; min-width: 0; } .ds-persona-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; } .ds-persona-name { font-weight: 600; font-size: 0.9375rem; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ds-persona-role { font-size: 0.875rem; color: #7c6af7; margin-top: 2px; } .ds-persona-action { font-size: 0.75rem; padding: 4px 8px; border: 1px solid #2e2e3e; border-radius: 6px; color: #6b6b80; background: transparent; cursor: pointer; transition: border-color 150ms; } .ds-persona-action:hover { border-color: rgba(124, 106, 247, 0.5); } .ds-persona-bio { font-size: 0.875rem; color: #6b6b80; margin-top: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ds-persona-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; } .ds-chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 9999px; background: #22222e; color: #6b6b80; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input used in meeting setup and persona forms.",
+      "html": "<div class=\"ds-field\">\n  <label class=\"ds-label\">Topic / Question</label>\n  <input class=\"ds-input\" placeholder=\"What should our product roadmap priorities be?\" />\n</div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; } .ds-label { font-size: 0.875rem; font-weight: 500; color: #6b6b80; } .ds-input { width: 100%; padding: 8px 12px; background: #22222e; border: 1px solid #2e2e3e; border-radius: 8px; color: #e8e8f0; font-size: 0.875rem; transition: border-color 150ms; } .ds-input::placeholder { color: #6b6b80; } .ds-input:focus-visible { outline: 2px solid #7c6af7; outline-offset: 0; border-color: transparent; } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Meeting status indicator: Ready / Running / Completed / Error.",
+      "html": "<div style=\"display:flex;gap:8px;\">\n  <span class=\"ds-status ds-status--ready\">Ready</span>\n  <span class=\"ds-status ds-status--running\">Running</span>\n  <span class=\"ds-status ds-status--completed\">Completed</span>\n  <span class=\"ds-status ds-status--error\">Error</span>\n</div>",
+      "css": ".ds-status { font-size: 0.75rem; padding: 4px 10px; border-radius: 9999px; font-weight: 500; } .ds-status--ready { color: #9ca3af; background: rgba(156,163,175,0.1); } .ds-status--running { color: #10b981; background: rgba(16,185,129,0.1); } .ds-status--completed { color: #7c6af7; background: rgba(124,106,247,0.1); } .ds-status--error { color: #ef4444; background: rgba(239,68,68,0.1); }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "description": "The global header: logo, Personas link, New Meeting CTA, theme toggle.",
+      "html": "<header class=\"ds-nav\">\n  <div class=\"ds-nav-inner\">\n    <a href=\"/\" class=\"ds-nav-logo\">⚔️ Roundtable Knights</a>\n    <nav class=\"ds-nav-links\">\n      <a href=\"/personas\" class=\"ds-nav-link\">Personas</a>\n      <a href=\"/meetings/new\" class=\"ds-btn-primary\" style=\"font-size:0.875rem;padding:8px 16px;\">New Meeting</a>\n    </nav>\n  </div>\n</header>",
+      "css": ".ds-nav { border-bottom: 1px solid #2e2e3e; background: #1a1a24; } .ds-nav-inner { max-width: 1152px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; } .ds-nav-logo { display: flex; align-items: center; gap: 8px; font-size: 1.125rem; font-weight: 600; color: #e8e8f0; text-decoration: none; } .ds-nav-links { display: flex; align-items: center; gap: 16px; } .ds-nav-link { font-size: 0.875rem; color: #6b6b80; text-decoration: none; transition: color 150ms; } .ds-nav-link:hover { color: #ffffff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Council Chamber",
+    "overview": "Roundtable Knights lives in a digital council chamber: a space of austere authority where deliberation happens under low, purposeful light. The aesthetic is architectural rather than decorative — deep void backgrounds recede so the personas and their arguments can command attention. The single violet accent is the chamber's one source of warmth, used with discipline; when it appears, it signals action or identity.\n\nDensity is moderate-high. This is a working tool, not a dashboard. Text is the product — turns, arguments, dissents — and the interface is designed to get out of its way. Cards have presence without mass. Borders are structural, not ornamental. Spacing is precise: tight groupings within components, generous gutters between them.\n\nThe light theme inverts the material — the chamber walls become pale and clean — but the structural logic is identical. Every spacing and color decision that works in dark reads clearly in light. No element relies on darkness to function.",
+    "keyCharacteristics": [
+      "Void-dark base with a single violet accent held in careful reserve",
+      "Persona-color system: each participant gets a unique hue that tints their avatar ring, bubble border, and role chip",
+      "Turn bubbles use a 3px left-border in the speaker's persona color — the visual signature of multi-voice structure",
+      "Moderate-high density; legibility at speed is the primary layout concern",
+      "Flat surfaces with tonal layering; elevation through background shifts, not shadows",
+      "All motion is purposeful and brief: fade-in-up entrance at 220ms ease-out only"
+    ],
+    "rules": [
+      { "name": "The One Voice Rule",       "body": "Violet is used at ≤15% of any screen's visual area. Its rarity makes it a reliable signal. Every additional use dilutes the effect; remove uses before adding them.", "section": "colors" },
+      { "name": "The Persona Color Contract","body": "Each persona is assigned a color keyed on their UUID. That color owns their avatar, bubble border, and role chip. It is never borrowed for global UI elements.", "section": "colors" },
+      { "name": "The No-Scale-Jump Rule",   "body": "There is no intermediate step between Title (1.125rem) and Headline (2.5rem). The gap is intentional; the two levels must not blur.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. The shadow-2xl on the hero preview is a deliberate feature exception — it marks the preview as a contained artifact, not a page section. Do not generalize it.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the 3-step tonal ladder (Void → Chamber → Chamber Raised) to communicate depth.",
+      "Do assign persona colors from the deterministic avatar utility for every persona mention.",
+      "Do hold Violet in reserve for primary CTA, active/selected states, focus rings, and accent links only.",
+      "Do use rounded-xl rounded-tl-none for primary turn bubbles.",
+      "Do uppercase section eyebrows with tracking-widest in Counsel color — one per section only.",
+      "Do use text-balance on multi-line headings."
+    ],
+    "donts": [
+      "Don't introduce a shadow on cards, inputs, or list rows.",
+      "Don't use a border-left wider than 3px on turn bubbles.",
+      "Don't use gradient text.",
+      "Don't use monospace fonts outside of inline code in turn content.",
+      "Don't reuse status colors (green, amber, red) for non-status purposes.",
+      "Don't add section eyebrow numbering unless sequence carries navigation meaning."
+    ]
+  }
+}

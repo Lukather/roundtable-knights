@@ -63,8 +63,8 @@ export default function DiscussionFeed({ turns, streamingTurns, personaMap }: Pr
                     {[0, 1, 2].map((j) => (
                       <span
                         key={j}
-                        className="w-1.5 h-1.5 rounded-full inline-block animate-bounce"
-                        style={{ background: color, animationDelay: `${j * 150}ms` }}
+                        className="w-1.5 h-1.5 rounded-full inline-block thinking-dot"
+                        style={{ background: color, animationDelay: `${j * 200}ms` }}
                       />
                     ))}
                   </div>

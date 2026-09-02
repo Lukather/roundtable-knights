@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Persona } from '@/types'
 import { useRouter } from 'next/navigation'
+import { getInitials, avatarColorHex } from '@/lib/avatarUtils'
+import { personaAvatarSvg } from '@/lib/personaAvatar'
 
 interface Props {
   initial?: Partial<Persona>
@@ -10,15 +12,13 @@ interface Props {
   personaId?: string
 }
 
-const inputClass = "w-full px-3 py-2 rounded-lg border text-sm transition-colors"
-const inputStyle = { background: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--foreground)' }
-const labelClass = "block text-sm font-medium mb-1.5"
-const labelStyle = { color: 'var(--muted)' }
+// Stable preview ID so color stays consistent during creation
+const PREVIEW_ID = 'preview-persona-draft'
 
 export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
   const router = useRouter()
+  const previewId = personaId ?? PREVIEW_ID
 
-  // Manual form fields
   const [form, setForm] = useState({
     name: initial.name || '',
     role: initial.role || '',
@@ -28,8 +28,6 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-
-  // AI generation state
   const [aiMode, setAiMode] = useState(false)
   const [description, setDescription] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -37,6 +35,9 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
 
   const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }))
+
+  const previewColor = avatarColorHex(previewId)
+  const expertiseTags = form.expertiseRaw.split(',').map((s) => s.trim()).filter(Boolean)
 
   async function handleGenerate() {
     if (!description.trim()) return
@@ -53,14 +54,8 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
         throw new Error(msg || 'Generation failed')
       }
       const { name, role, background, personality, expertise } = await res.json()
-      setForm({
-        name,
-        role,
-        background,
-        personality,
-        expertiseRaw: (expertise as string[]).join(', '),
-      })
-      setAiMode(false) // flip to manual so user can review/edit
+      setForm({ name, role, background, personality, expertiseRaw: (expertise as string[]).join(', ') })
+      setAiMode(false)
     } catch (err) {
       setGenError(String(err))
     } finally {
@@ -73,10 +68,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
     setSaving(true)
     setError('')
     try {
-      const expertise = form.expertiseRaw
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
+      const expertise = form.expertiseRaw.split(',').map((s) => s.trim()).filter(Boolean)
       const payload = { name: form.name, role: form.role, background: form.background, personality: form.personality, expertise }
       const url = mode === 'create' ? '/api/personas' : `/api/personas/${personaId}`
       const method = mode === 'create' ? 'POST' : 'PUT'
@@ -92,166 +84,176 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
   }
 
   return (
-    <div className="max-w-2xl">
-      {/* Mode toggle — create only */}
-      {mode === 'create' && (
-        <div
-          className="inline-flex rounded-lg p-1 mb-7 gap-1"
-          style={{ background: 'var(--surface)' }}
-        >
-          <button
-            type="button"
-            onClick={() => setAiMode(false)}
-            className="px-4 py-1.5 rounded-md text-sm font-medium transition-[background-color,transform] active:scale-[0.96]"
-            style={
-              !aiMode
-                ? { background: 'var(--accent)', color: '#fff' }
-                : { color: 'var(--muted)' }
-            }
-          >
-            Manual
-          </button>
-          <button
-            type="button"
-            onClick={() => setAiMode(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-[background-color,transform] active:scale-[0.96]"
-            style={
-              aiMode
-                ? { background: 'var(--accent)', color: '#fff' }
-                : { color: 'var(--muted)' }
-            }
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-            </svg>
-            Generate with AI
-          </button>
-        </div>
-      )}
+    <div className="pf-shell">
+      {/* ── Left: form ── */}
+      <div className="pf-form-col">
+        {/* Mode toggle — create only */}
+        {mode === 'create' && (
+          <div className="pf-mode-toggle">
+            <button
+              type="button"
+              onClick={() => setAiMode(false)}
+              className={`pf-mode-btn ${!aiMode ? 'pf-mode-active' : ''}`}
+            >
+              Manual
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiMode(true)}
+              className={`pf-mode-btn pf-mode-ai ${aiMode ? 'pf-mode-active' : ''}`}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+              Generate with AI
+            </button>
+          </div>
+        )}
 
-      {/* AI generation panel */}
-      {aiMode && mode === 'create' ? (
-        <div className="space-y-4">
-          <div>
-            <label className={labelClass} style={labelStyle}>
-              Describe the persona
-            </label>
+        {/* AI panel */}
+        {aiMode && mode === 'create' ? (
+          <div className="pf-ai-panel">
+            <p className="pf-ai-hint">
+              Describe the person in plain terms — their role, background, disposition, and any opinions they should hold.
+            </p>
             <textarea
-              className={inputClass}
-              style={inputStyle}
+              className="pf-input pf-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={5}
-              placeholder={`Describe the person in plain terms — role, background, personality, areas of expertise. Examples:\n\n"A skeptical CFO in her 50s, formerly a Big-4 auditor, who cuts through optimistic projections with hard numbers."\n\n"A young ML engineer, opinionated about architecture, uncomfortable with slow consensus, tends to dominate technical conversations."`}
+              rows={6}
+              placeholder={`"A skeptical CFO in her 50s, formerly a Big-4 auditor, who cuts through optimistic projections with hard numbers."\n\n"A young ML engineer, opinionated about architecture, uncomfortable with slow consensus."`}
               autoFocus
             />
+            {genError && <p className="pf-error">{genError}</p>}
+            <div className="pf-actions">
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={generating || !description.trim()}
+                className="pf-btn-primary"
+              >
+                {generating ? (
+                  <>
+                    <svg className="pf-spin" viewBox="0 0 24 24" fill="none" style={{ width: 13, height: 13 }}>
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25" />
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" opacity=".75" />
+                    </svg>
+                    Generating…
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                    Generate
+                  </>
+                )}
+              </button>
+              <button type="button" onClick={() => router.push('/personas')} className="pf-btn-ghost">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          /* Manual form */
+          <form onSubmit={handleSubmit} className="pf-fields">
+            <div className="pf-field">
+              <label className="pf-label">Name</label>
+              <input className="pf-input" value={form.name} onChange={set('name')} placeholder="Dr. Sarah Chen" required />
+            </div>
+            <div className="pf-field">
+              <label className="pf-label">Role</label>
+              <input className="pf-input" value={form.role} onChange={set('role')} placeholder="Senior Product Manager" required />
+            </div>
+            <div className="pf-field">
+              <label className="pf-label">Background</label>
+              <textarea
+                className="pf-input pf-textarea"
+                value={form.background}
+                onChange={set('background')}
+                rows={3}
+                placeholder="2–3 sentences about their professional background and experience."
+                required
+              />
+            </div>
+            <div className="pf-field">
+              <label className="pf-label">Personality & Communication Style</label>
+              <textarea
+                className="pf-input pf-textarea"
+                value={form.personality}
+                onChange={set('personality')}
+                rows={2}
+                placeholder="Direct, data-driven, skeptical of vague claims. Challenges assumptions openly."
+                required
+              />
+            </div>
+            <div className="pf-field">
+              <label className="pf-label">Areas of Expertise <span className="pf-label-optional">comma-separated</span></label>
+              <input
+                className="pf-input"
+                value={form.expertiseRaw}
+                onChange={set('expertiseRaw')}
+                placeholder="product strategy, user research, OKRs"
+              />
+            </div>
+
+            {error && <p className="pf-error">{error}</p>}
+
+            <div className="pf-actions">
+              <button type="submit" disabled={saving} className="pf-btn-primary">
+                {saving ? 'Saving…' : mode === 'create' ? 'Commission persona' : 'Save changes'}
+              </button>
+              <button type="button" onClick={() => router.push('/personas')} className="pf-btn-ghost">Cancel</button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* ── Right: live preview ── */}
+      <aside className="pf-preview-col">
+        <div className="pf-preview-label">Character preview</div>
+        <div className="pf-preview-card" style={{ borderColor: `${previewColor}30` }}>
+          {/* Top accent line */}
+          <div className="pf-preview-top-rule" style={{ background: previewColor }} />
+
+          {/* Avatar + name block */}
+          <div className="pf-preview-head">
+            <div className="pf-preview-avatar" style={{ background: `${previewColor}18`, borderColor: `${previewColor}50` }}>
+              <img src={personaAvatarSvg(previewId, form.name || undefined)} alt="preview" width={32} height={32} style={{ display: 'block' }} />
+            </div>
+            <div>
+              <div className="pf-preview-name">{form.name || <span className="pf-preview-empty">Name</span>}</div>
+              <div className="pf-preview-role" style={{ color: previewColor }}>{form.role || <span className="pf-preview-empty">Role</span>}</div>
+            </div>
           </div>
 
-          {genError && <p className="text-red-400 text-sm">{genError}</p>}
+          {/* Background */}
+          {form.background ? (
+            <p className="pf-preview-bio">{form.background}</p>
+          ) : (
+            <p className="pf-preview-bio pf-preview-empty">Background will appear here…</p>
+          )}
 
-          <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={generating || !description.trim()}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
-              style={{ background: 'var(--accent)' }}
-            >
-              {generating ? (
-                <>
-                  <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                  </svg>
-                  Generating…
-                </>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                  </svg>
-                  Generate
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/personas')}
-              className="px-5 py-2 rounded-lg text-sm transition-colors"
-              style={{ color: 'var(--muted)' }}
-            >
-              Cancel
-            </button>
-          </div>
+          {/* Personality */}
+          {form.personality && (
+            <div className="pf-preview-personality">
+              <span className="pf-preview-personality-label">Disposition</span>
+              <p className="pf-preview-personality-text">{form.personality}</p>
+            </div>
+          )}
+
+          {/* Expertise */}
+          {expertiseTags.length > 0 && (
+            <div className="pf-preview-tags">
+              {expertiseTags.map((t) => (
+                <span key={t} className="pf-preview-tag">{t}</span>
+              ))}
+            </div>
+          )}
         </div>
-      ) : (
-        /* Manual form */
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className={labelClass} style={labelStyle}>Name *</label>
-            <input className={inputClass} style={inputStyle} value={form.name} onChange={set('name')} placeholder="Dr. Sarah Chen" required />
-          </div>
-          <div>
-            <label className={labelClass} style={labelStyle}>Role *</label>
-            <input className={inputClass} style={inputStyle} value={form.role} onChange={set('role')} placeholder="Senior Product Manager" required />
-          </div>
-          <div>
-            <label className={labelClass} style={labelStyle}>Background *</label>
-            <textarea
-              className={inputClass}
-              style={inputStyle}
-              value={form.background}
-              onChange={set('background')}
-              rows={3}
-              placeholder="2-3 sentences about their professional background and experience..."
-              required
-            />
-          </div>
-          <div>
-            <label className={labelClass} style={labelStyle}>Personality & Communication Style *</label>
-            <textarea
-              className={inputClass}
-              style={inputStyle}
-              value={form.personality}
-              onChange={set('personality')}
-              rows={2}
-              placeholder="Direct, data-driven, skeptical of vague claims. Challenges assumptions openly."
-              required
-            />
-          </div>
-          <div>
-            <label className={labelClass} style={labelStyle}>Areas of Expertise</label>
-            <input
-              className={inputClass}
-              style={inputStyle}
-              value={form.expertiseRaw}
-              onChange={set('expertiseRaw')}
-              placeholder="product strategy, user research, OKRs (comma-separated)"
-            />
-          </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 rounded-lg text-white text-sm font-medium transition-[background-color,transform] hover:opacity-90 active:scale-[0.96] disabled:opacity-50"
-              style={{ background: 'var(--accent)' }}
-            >
-              {saving ? 'Saving…' : mode === 'create' ? 'Create Persona' : 'Save Changes'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/personas')}
-              className="px-5 py-2 rounded-lg text-sm transition-colors"
-              style={{ color: 'var(--muted)' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+        <p className="pf-preview-note">
+          This is how your persona will appear across sessions. Their avatar color is derived from their ID and is fixed once saved.
+        </p>
+      </aside>
     </div>
   )
 }

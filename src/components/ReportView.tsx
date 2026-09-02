@@ -78,7 +78,7 @@ export default function ReportView({ report }: Props) {
 
       {/* Executive Summary */}
       <div
-        className="rounded-xl border p-5 mb-4 border-l-4"
+        className="rounded-xl border p-5 mb-4 border-l-[3px]"
         style={{ background: 'var(--surface)', borderColor: 'var(--border)', borderLeftColor: 'var(--accent)' }}
       >
         <h3 className="font-semibold text-white mb-3 flex items-center gap-2" style={{ color: 'var(--accent)' }}>
@@ -99,7 +99,7 @@ export default function ReportView({ report }: Props) {
       {SECTION_CONFIG.map(({ key, title, accent, icon }) => (
         <div
           key={key}
-          className="rounded-xl border p-5 mb-4 border-l-4"
+          className="rounded-xl border p-5 mb-4 border-l-[3px]"
           style={{ background: 'var(--surface)', borderColor: 'var(--border)', borderLeftColor: accent }}
         >
           <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm" style={{ color: accent }}>

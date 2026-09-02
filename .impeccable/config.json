@@ -1,0 +1,11 @@
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreValues": [
+      { "rule": "design-system-radius", "value": "2px", "reason": "scrollbar thumb micro-utility" },
+      { "rule": "design-system-radius", "value": "3px", "reason": "inline code border-radius micro-utility" },
+      { "rule": "side-tab", "value": "*", "files": ["src/app/page.tsx", "src/components/TurnBubble.tsx"], "reason": "intentional product language: persona-color turn-bubble border system" }
+    ],
+    "ignoreRules": ["overused-font"]
+  }
+}
