@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Persona } from '@/types'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getInitials, avatarColorHex } from '@/lib/avatarUtils'
 import { personaAvatarSvg } from '@/lib/personaAvatar'
 
@@ -17,6 +17,8 @@ const PREVIEW_ID = 'preview-persona-draft'
 
 export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo')
   const previewId = personaId ?? PREVIEW_ID
 
   const [form, setForm] = useState({
@@ -74,7 +76,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
       const method = mode === 'create' ? 'POST' : 'PUT'
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!res.ok) throw new Error(await res.text())
-      router.push('/personas')
+      router.push(returnTo ?? '/personas')
       router.refresh()
     } catch (err) {
       setError(String(err))
@@ -149,7 +151,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
                   </>
                 )}
               </button>
-              <button type="button" onClick={() => router.push('/personas')} className="pf-btn-ghost">Cancel</button>
+              <button type="button" onClick={() => router.push(returnTo ?? '/personas')} className="pf-btn-ghost">Cancel</button>
             </div>
           </div>
         ) : (
@@ -201,7 +203,7 @@ export default function PersonaForm({ initial = {}, mode, personaId }: Props) {
               <button type="submit" disabled={saving} className="pf-btn-primary">
                 {saving ? 'Saving…' : mode === 'create' ? 'Commission persona' : 'Save changes'}
               </button>
-              <button type="button" onClick={() => router.push('/personas')} className="pf-btn-ghost">Cancel</button>
+              <button type="button" onClick={() => router.push(returnTo ?? '/personas')} className="pf-btn-ghost">Cancel</button>
             </div>
           </form>
         )}

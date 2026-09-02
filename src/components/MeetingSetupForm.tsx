@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Persona, Attachment } from '@/types'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AttachmentUploader from './AttachmentUploader'
 import { v4 as uuidv4 } from 'uuid'
-import { getInitials, avatarColor, avatarColorHex } from '@/lib/avatarUtils'
+import { getInitials, avatarColorHex } from '@/lib/avatarUtils'
 import { personaAvatarSvg } from '@/lib/personaAvatar'
 
 // ─── Step definitions ────────────────────────────────────────────────────────
@@ -119,7 +119,11 @@ function PersonaAvatar({
 
 export default function MeetingSetupForm() {
   const router = useRouter()
-  const [step, setStep] = useState<StepId>(1)
+  const searchParams = useSearchParams()
+  const [step, setStep] = useState<StepId>(() => {
+    const s = Number(searchParams.get('step'))
+    return (s === 1 || s === 2 || s === 3 || s === 4) ? s as StepId : 1
+  })
   const [animKey, setAnimKey] = useState(0)
 
   const [personas, setPersonas] = useState<Persona[]>([])
@@ -146,6 +150,7 @@ export default function MeetingSetupForm() {
       .then((data) => { setPersonas(data); setLoadingPersonas(false) })
       .catch(() => setLoadingPersonas(false))
   }
+
   const goTo = useCallback((next: StepId) => {
     setAnimKey((k) => k + 1)
     setStep(next)
@@ -328,10 +333,9 @@ export default function MeetingSetupForm() {
                   Choose who sits at the table. Each persona brings a distinct perspective and bias.
                 </p>
               </div>
-              <a
-                href="/personas/new"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => router.push(`/personas/new?returnTo=${encodeURIComponent('/meetings/new?step=2')}`)}
                 className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors hover:border-purple-500/60 hover:text-white"
                 style={{ color: 'var(--muted)', borderColor: 'var(--border)', background: 'var(--surface)' }}
               >
@@ -339,7 +343,7 @@ export default function MeetingSetupForm() {
                   <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
                 New persona
-              </a>
+              </button>
             </div>
 
             {/* Cast strip */}
@@ -380,24 +384,6 @@ export default function MeetingSetupForm() {
             </div>
 
             {/* Persona grid */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-                Available personas
-              </span>
-              <button
-                type="button"
-                onClick={refreshPersonas}
-                className="inline-flex items-center gap-1 text-xs transition-colors hover:text-white"
-                style={{ color: 'var(--muted)' }}
-                title="Refresh list after creating a new persona"
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M10 6A4 4 0 1 1 6.5 2.05" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                  <path d="M7 1l-.5 1.5L8 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Refresh
-              </button>
-            </div>
             {loadingPersonas ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3, 4].map((i) => (
