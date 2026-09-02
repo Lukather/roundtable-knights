@@ -27,6 +27,13 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public/
 COPY --from=builder /app/data ./data/
 
+# Copy seed script (runs at startup to populate demo data)
+COPY --from=builder /app/scripts/seed-demo-prodstrat.mjs ./scripts/seed-demo-prodstrat.mjs
+
+# Ensure data dir is writable by the nextjs user
+RUN chown -R nextjs:nodejs /app/data
+
 USER nextjs
 
-CMD ["sh", "-c", "node server.js"]
+# Seed demo data on every start, then launch the server
+CMD ["sh", "-c", "node scripts/seed-demo-prodstrat.mjs && node server.js"]
