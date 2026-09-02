@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import AttachmentUploader from './AttachmentUploader'
 import { v4 as uuidv4 } from 'uuid'
 import { getInitials, avatarColor, avatarColorHex } from '@/lib/avatarUtils'
+import { personaAvatarSvg } from '@/lib/personaAvatar'
 
 // ─── Step definitions ────────────────────────────────────────────────────────
 
@@ -89,29 +90,27 @@ function PersonaAvatar({
   ring?: boolean
 }) {
   const color = avatarColorHex(persona.id)
+  const src = personaAvatarSvg(persona.id, persona.name)
   return (
     <div
-      className="relative flex-shrink-0 rounded-full flex items-center justify-center font-bold select-none"
+      className="relative flex-shrink-0 rounded-full select-none"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.3,
-        boxShadow: ring ? `0 0 0 2px ${color}` : undefined,
+        background: `${color}18`,
+        border: `1.5px solid ${color}${ring ? '80' : '40'}`,
+        borderRadius: '50%',
+        overflow: 'hidden',
+        boxShadow: ring ? `0 0 0 2px ${color}40` : undefined,
       }}
     >
-      <div
-        className={`w-full h-full rounded-full flex items-center justify-center ${avatarColor(persona.id)}`}
-        style={{ color: '#fff' }}
-      >
-        {getInitials(persona.name)}
-      </div>
-      {ring && (
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{ boxShadow: `0 0 0 3px ${color}40` }}
-          aria-hidden
-        />
-      )}
+      <img
+        src={src}
+        alt={persona.name}
+        width={size}
+        height={size}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
     </div>
   )
 }
